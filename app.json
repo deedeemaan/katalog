@@ -1,5 +1,6 @@
 {
   "expo": {
+    "sdkVersion": "53.0.0",
     "name": "physiotrack",
     "slug": "physiotrack",
     "version": "1.0.0",
@@ -23,6 +24,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }
