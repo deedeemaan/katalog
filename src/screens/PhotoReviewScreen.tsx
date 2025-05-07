@@ -1,126 +1,135 @@
-// // src/screens/PhotoReviewScreen.tsx
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   Image,
-//   TouchableOpacity,
-//   ActivityIndicator,
-//   Alert,
-//   ScrollView
-// } from 'react-native';
-// import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-// import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-// import { RootStackParamList } from '../navigation/types';
-// import { API_URL } from '../services/api';
+// src/screens/PhotoReviewScreen.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  Alert
+} from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp }                        from '@react-navigation/native';
+import { RootStackParamList }                    from '../navigation/types';
+import { API_URL }                               from '../services/api';
 
-// type PhotoReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
-// type PhotoReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
+type ReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
+type ReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
 
-// export default function PhotoReviewScreen() {
-//   const route      = useRoute<PhotoReviewRouteProp>();
-//   const navigation = useNavigation<PhotoReviewNavProp>();
-//   const { uri }    = route.params;
+export default function PhotoReviewScreen({
+  route,
+  navigation
+}: {
+  route: ReviewRouteProp;
+  navigation: ReviewNavProp;
+}) {
+  const { uri, studentId } = route.params;
+  const [saving, setSaving] = useState(false);
 
-//   const [processing, setProcessing] = useState(false);
-//   const [analysis, setAnalysis]     = useState<null | {
-//     keypoints: Array<{ x: number; y: number; name: string }>;
-//     angles: Array<{ name: string; value: number; alert: boolean }>;
-//     annotatedUri?: string;
-//   }>(null);
+  const savePhoto = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId, uri })
+      });
+      if (!res.ok) throw new Error('Save failed');
+      Alert.alert('Saved', 'Photo has been saved.');
+      navigation.popToTop();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-//   const runAnalysis = async () => {
-//     setProcessing(true);
-//     try {
-//       // Exemplu de apel către endpoint AI
-//       const res = await fetch(`${API_URL}/analyze`, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ imageUri: uri })
-//       });
-//       if (!res.ok) throw new Error('Analysis failed');
-//       const result = await res.json();
-//       // result ar putea conține: keypoints, angles, și optional annotatedUri
-//       setAnalysis(result);
-//     } catch (err: any) {
-//       console.error(err);
-//       Alert.alert('Eroare', err.message || 'Nu s-a putut analiza imaginea.');
-//     } finally {
-//       setProcessing(false);
-//     }
-//   };
+  const { width, height } = Dimensions.get('window');
 
-//   return (
-//     <ScrollView contentContainerStyle={styles.container}>
-//       <Text style={styles.header}>Review Photo</Text>
+  return (
+    <View style={styles.container}>
+      <View style={styles.previewContainer}>
+        <Image source={{ uri }} style={styles.preview} />
+        <View style={styles.gridContainer}>
+          {Array.from({ length: 11 }).map((_, i) => (
+            <View
+              key={`v${i}`}
+              style={[
+                styles.gridLineVertical,
+                { left: `${(i / 10) * 100}%` }
+              ]}
+            />
+          ))}
+          {Array.from({ length: 21 }).map((_, j) => (
+            <View
+              key={`h${j}`}
+              style={[
+                styles.gridLineHorizontal,
+                { top: `${(j / 20) * 100}%` }
+              ]}
+            />
+          ))}
+        </View>
+      </View>
 
-//       <Image source={{ uri }} style={styles.photo} resizeMode="contain" />
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={[styles.btn, styles.retake]}
+          onPress={() => navigation.replace('Camera', { studentId })}
+        >
+          <Text style={styles.btnText}>Retake</Text>
+        </TouchableOpacity>
 
-//       {analysis?.annotatedUri && (
-//         <View style={styles.annotationContainer}>
-//           <Text style={styles.subheader}>Annotated</Text>
-//           <Image source={{ uri: analysis.annotatedUri }} style={styles.photo} resizeMode="contain" />
-//         </View>
-//       )}
+        <TouchableOpacity
+          style={[styles.btn, styles.save]}
+          onPress={savePhoto}
+          disabled={saving}
+        >
+          <Text style={styles.btnText}>
+            {saving ? 'Saving...' : 'Save'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
 
-//       {!analysis ? (
-//         <TouchableOpacity
-//           style={styles.button}
-//           onPress={runAnalysis}
-//           disabled={processing}
-//         >
-//           {processing ? (
-//             <ActivityIndicator color="#fff" />
-//           ) : (
-//             <Text style={styles.buttonText}>Analyze & Measure</Text>
-//           )}
-//         </TouchableOpacity>
-//       ) : (
-//         <View style={styles.resultContainer}>
-//           <Text style={styles.subheader}>Results</Text>
-//           {analysis.angles.map((angle, i) => (
-//             <Text
-//               key={i}
-//               style={[
-//                 styles.angleText,
-//                 angle.alert && styles.alertText
-//               ]}
-//             >
-//               {angle.name}: {angle.value.toFixed(1)}°
-//               {angle.alert && ' ⚠️'}
-//             </Text>
-//           ))}
-//           <TouchableOpacity
-//             style={[styles.button, { marginTop: 16 }]}
-//             onPress={() => {
-//               // opțional: salvează măsurătoare în backend
-//               navigation.goBack();
-//             }}
-//           >
-//             <Text style={styles.buttonText}>Done</Text>
-//           </TouchableOpacity>
-//         </View>
-//       )}
-//     </ScrollView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container:           { padding: 16, backgroundColor: '#fff' },
-//   header:              { fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-//   subheader:           { fontSize: 18, fontWeight: '600', marginVertical: 8 },
-//   photo:               { width: '100%', height: 300, borderRadius: 8, backgroundColor: '#eee' },
-//   annotationContainer: { marginTop: 16 },
-//   button:              {
-//     backgroundColor: '#007AFF',
-//     padding: 14,
-//     borderRadius: 6,
-//     alignItems: 'center',
-//     marginTop: 16
-//   },
-//   buttonText:          { color: '#fff', fontWeight: '600' },
-//   resultContainer:     { marginTop: 16 },
-//   angleText:           { fontSize: 16, marginVertical: 4 },
-//   alertText:           { color: 'red' }
-// });
+const styles = StyleSheet.create({
+  container:       { flex: 1, backgroundColor: '#000' },
+  previewContainer:{ flex: 1 },
+  preview:         { flex: 1, resizeMode: 'cover' },
+  gridContainer:   {
+    ...StyleSheet.absoluteFillObject
+  },
+  gridLineVertical: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 1,
+    backgroundColor: 'rgba(255,255,255,0.5)'
+  },
+  gridLineHorizontal: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.5)'
+  },
+  buttons:         {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 16,
+    backgroundColor: '#111'
+  },
+  btn:             {
+    flex: 1,
+    marginHorizontal: 8,
+    padding: 14,
+    borderRadius: 6,
+    alignItems: 'center'
+  },
+  retake:          { backgroundColor: '#555' },
+  save:            { backgroundColor: '#28A745' },
+  btnText:         { color: '#fff', fontWeight: '600' }
+});

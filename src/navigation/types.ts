@@ -4,8 +4,8 @@ export type RootStackParamList = {
     EditStudent: { student: { id: number; name: string; age: number; condition: string; notes: string } };
     StudentDetail: { id: number; name: string };
     AddMeasurement: { studentId: number };
-    AddSession:    { studentId: number };
-    EditSession:   { session: { id: number; student_id: number; session_date: string; notes: string } };
+    AddSession: { studentId: number };
+    EditSession: { session: { id: number; student_id: number; session_date: string; notes: string } };
     EditMeasurement: {
         measurement: {
             id: number;
@@ -19,6 +19,6 @@ export type RootStackParamList = {
             created_at: string;
         }
     };
-    Camera:       undefined;
-    // PhotoReview: { uri: string };
+    Camera: { studentId: number };
+    PhotoReview:  { uri: string; studentId: number };
 };

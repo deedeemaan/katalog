@@ -1,197 +1,219 @@
 // src/screens/StudentDetailScreen.tsx
-import React, {
-    useCallback,
-    useState,
-    useRef,
-    useEffect
-  } from 'react';
-  import {
-    View,
-    Text,
-    FlatList,
-    TouchableOpacity,
-    StyleSheet,
-    ActivityIndicator,
-    Alert
-  } from 'react-native';
-  import {
-    useRoute,
-    useNavigation,
-    useFocusEffect
-  } from '@react-navigation/native';
-  import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-  import { RouteProp } from '@react-navigation/native';
-  import { Camera, CameraType } from 'expo-camera';
-  import { RootStackParamList } from '../navigation/types';
-  import { API_URL } from '../services/api';
-  
-  type DetailRouteProp = RouteProp<RootStackParamList, 'StudentDetail'>;
-  type DetailNavProp   = NativeStackNavigationProp<RootStackParamList, 'StudentDetail'>;
-  
-  export default function StudentDetailScreen() {
-    const route      = useRoute<DetailRouteProp>();
-    const navigation = useNavigation<DetailNavProp>();
-    const { id, name } = route.params;
-  
-    const [loading, setLoading]           = useState(true);
-    const [measurements, setMeasurements] = useState<any[]>([]);
-    const [sessions, setSessions]         = useState<any[]>([]);
-  
-    // Pentru cameră
-    const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-    const cameraRef = useRef<InstanceType<typeof Camera> | null>(null);
-    const [showCamera, setShowCamera] = useState(false);
-  
-    // Cerere permisiune camera
-    useEffect(() => {
-      (async () => {
-        const { status } = await Camera.requestCameraPermissionsAsync();
-        setHasPermission(status === 'granted');
-      })();
-    }, []);
-  
-    // Funcție de captura
-    const takePhoto = useCallback(async () => {
-      if (cameraRef.current) {
-        const photo = await cameraRef.current.takePictureAsync();
-        console.log('Photo URI:', photo.uri);
-        // Aici poți adăuga logica de upload sau salvare locală
-        setShowCamera(false);
-      }
-    }, []);
-  
-    const fetchDetails = useCallback(async () => {
-      setLoading(true);
-      try {
-        const [mRes, sRes] = await Promise.all([
-          fetch(`${API_URL}/students/${id}/measurements`),
-          fetch(`${API_URL}/students/${id}/sessions`)
-        ]);
-        if (!mRes.ok || !sRes.ok) throw new Error('Fetch failed');
-        setMeasurements(await mRes.json());
-        setSessions(await sRes.json());
-      } catch (err: any) {
-        Alert.alert('Error', err.message || 'Cannot load details');
-      } finally {
-        setLoading(false);
-      }
-    }, [id]);
-  
-    useFocusEffect(
-      React.useCallback(() => {
-        fetchDetails();
-      }, [fetchDetails])
-    );
-  
-    // Dacă permisiunea e refuzată
-    if (hasPermission === false) {
-      return <Text style={styles.container}>No access to camera</Text>;
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Dimensions
+} from 'react-native';
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect
+} from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp }                   from '@react-navigation/native';
+import { RootStackParamList }               from '../navigation/types';
+import { API_URL }                          from '../services/api';
+
+type DetailRouteProp = RouteProp<RootStackParamList, 'StudentDetail'>;
+type DetailNavProp   = NativeStackNavigationProp<RootStackParamList, 'StudentDetail'>;
+
+type Measurement = {
+  id: number;
+  created_at: string;
+  height: number;
+  weight: number;
+};
+
+type Session = {
+  id: number;
+  session_date: string;
+  notes: string;
+};
+
+type Photo = {
+  id: number;
+  uri: string;
+  created_at: string;
+};
+
+export default function StudentDetailScreen() {
+  const route      = useRoute<DetailRouteProp>();
+  const navigation = useNavigation<DetailNavProp>();
+  const { id, name } = route.params;
+
+  const [loading, setLoading]           = useState(true);
+  const [measurements, setMeasurements] = useState<Measurement[]>([]);
+  const [sessions, setSessions]         = useState<Session[]>([]);
+  const [photos, setPhotos]             = useState<Photo[]>([]);
+  const [selectedUri, setSelectedUri]   = useState<string | null>(null);
+
+  const fetchDetails = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [mRes, sRes, pRes] = await Promise.all([
+        fetch(`${API_URL}/students/${id}/measurements`),
+        fetch(`${API_URL}/students/${id}/sessions`),
+        fetch(`${API_URL}/students/${id}/photos`)
+      ]);
+      if (!mRes.ok || !sRes.ok || !pRes.ok) throw new Error('Fetch failed');
+      setMeasurements(await mRes.json());
+      setSessions(await sRes.json());
+      setPhotos(await pRes.json());
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Cannot load details');
+    } finally {
+      setLoading(false);
     }
-  
-    // Loader
-    if (loading && !showCamera) {
-      return <ActivityIndicator style={styles.loader} size="large" />;
-    }
-  
-    // Ecranul camerei full-screen
-    if (showCamera) {
-      return (
-        <Camera
-          style={{ flex: 1 }}
-          type={CameraType.back}
-          ref={cameraRef}
-        >
-          <View style={styles.cameraOverlay}>
-            <TouchableOpacity
-              onPress={takePhoto}
-              style={[styles.button, styles.cameraButton]}
-            >
-              <Text style={styles.buttonText}>Take Photo</Text>
-            </TouchableOpacity>
-          </View>
-        </Camera>
-      );
-    }
-  
-    // Ecranul principal cu datele studentului
-    return (
-      <View style={styles.container}>
-        <Text style={styles.header}>{name}</Text>
-  
-        {/* Measurements */}
-        <Text style={styles.subheader}>Measurements</Text>
-        <FlatList
-          data={measurements}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text>{new Date(item.created_at).toLocaleDateString()}</Text>
-              <Text>H: {item.height} cm · W: {item.weight} kg</Text>
-              <Text>Head: {item.head_circumference} cm</Text>
-              <Text>Chest: {item.chest_circumference} cm</Text>
-              <Text>Abd: {item.abdominal_circumference} cm</Text>
-            </View>
-          )}
-        />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('AddMeasurement', { studentId: id })}
-        >
-          <Text style={styles.buttonText}>+ Add Measurement</Text>
-        </TouchableOpacity>
-  
-        {/* Sessions */}
-        <Text style={styles.subheader}>Sessions</Text>
-        <FlatList
-          data={sessions}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text>{new Date(item.session_date).toLocaleDateString()}</Text>
-              <Text>{item.notes}</Text>
-            </View>
-          )}
-        />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('AddSession', { studentId: id })}
-        >
-          <Text style={styles.buttonText}>+ Adaugă Sesiune</Text>
-        </TouchableOpacity>
-  
-        {/* Butonul care deschide camera */}
-        <TouchableOpacity
-          style={[styles.button, styles.cameraButton]}
-          onPress={() => setShowCamera(true)}
-        >
-          <Text style={styles.buttonText}>Open Camera</Text>
-        </TouchableOpacity>
-      </View>
-    );
+  }, [id]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchDetails();
+    }, [fetchDetails])
+  );
+
+  if (loading) {
+    return <ActivityIndicator style={styles.loader} size="large" />;
   }
-  
-  const styles = StyleSheet.create({
-    container:        { flex: 1, padding: 16, backgroundColor: '#fff' },
-    header:           { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
-    subheader:        { fontSize: 18, fontWeight: '600', marginTop: 16, marginBottom: 8 },
-    card:             { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 6, marginVertical: 4 },
-    button:           {
-      backgroundColor: '#007AFF',
-      padding: 12,
-      borderRadius: 6,
-      alignItems: 'center',
-      marginTop: 12
-    },
-    cameraButton:     {
-      backgroundColor: '#28A745'
-    },
-    buttonText:       { color: '#fff', fontWeight: '600' },
-    loader:           { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    cameraOverlay:    {
-      flex: 1,
-      backgroundColor: 'transparent',
-      justifyContent: 'flex-end',
-      padding: 20
-    }
-  });
-  
+
+  const { width, height } = Dimensions.get('window');
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>{name}</Text>
+
+      {/* Measurements */}
+      <Text style={styles.subheader}>Measurements</Text>
+      <FlatList
+        data={measurements}
+        keyExtractor={i => i.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>{new Date(item.created_at).toLocaleDateString()}</Text>
+            <Text>H: {item.height} cm · W: {item.weight} kg</Text>
+          </View>
+        )}
+      />
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('AddMeasurement', { studentId: id })}
+      >
+        <Text style={styles.buttonText}>+ Add Measurement</Text>
+      </TouchableOpacity>
+
+      {/* Sessions */}
+      <Text style={styles.subheader}>Sessions</Text>
+      <FlatList
+        data={sessions}
+        keyExtractor={i => i.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>{new Date(item.session_date).toLocaleDateString()}</Text>
+            <Text>{item.notes}</Text>
+          </View>
+        )}
+      />
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('AddSession', { studentId: id })}
+      >
+        <Text style={styles.buttonText}>+ Add Session</Text>
+      </TouchableOpacity>
+
+      {/* Posture History */}
+      <Text style={styles.subheader}>Posture History</Text>
+      <FlatList
+        data={photos}
+        horizontal
+        keyExtractor={p => p.id.toString()}
+        contentContainerStyle={styles.photoList}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.photoCard}
+            onPress={() => setSelectedUri(item.uri)}
+          >
+            <Image source={{ uri: item.uri }} style={styles.photoThumb} />
+            <Text style={styles.photoDate}>
+              {new Date(item.created_at).toLocaleDateString()}
+            </Text>
+          </TouchableOpacity>
+        )}
+      />
+      <TouchableOpacity
+        style={[styles.button, styles.cameraButton]}
+        onPress={() => navigation.navigate('Camera', { studentId: id })}
+      >
+        <Text style={styles.buttonText}>Open Camera</Text>
+      </TouchableOpacity>
+
+      {/* Modal for enlarged photo + thicker center grid lines */}
+      <Modal visible={!!selectedUri} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <Image source={{ uri: selectedUri! }} style={[styles.preview, { width, height }]} />
+          <View style={[styles.gridContainer, { width, height }]}>
+            {Array.from({ length: 11 }).map((_, i) => (
+              <View
+                key={`v${i}`}
+                style={[
+                  styles.gridLineVertical,
+                  { left: `${(i / 10) * 100}%`, height },
+                  i === 5 && styles.gridLineCenterVertical
+                ]}
+              />
+            ))}
+            {Array.from({ length: 21 }).map((_, j) => (
+              <View
+                key={`h${j}`}
+                style={[
+                  styles.gridLineHorizontal,
+                  { top: `${(j / 20) * 100}%`, width },
+                  j === 10 && styles.gridLineCenterHorizontal
+                ]}
+              />
+            ))}
+          </View>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedUri(null)}>
+            <Text style={styles.closeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container:            { flex: 1, padding: 16, backgroundColor: '#fff' },
+  header:               { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
+  subheader:            { fontSize: 18, fontWeight: '600', marginTop: 16, marginBottom: 8 },
+  card:                 { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 6, marginVertical: 4 },
+  button:               { backgroundColor: '#007AFF', padding: 12, borderRadius: 6, alignItems: 'center', marginTop: 12 },
+  cameraButton:         { backgroundColor: '#28A745' },
+  buttonText:           { color: '#fff', fontWeight: '600' },
+  loader:               { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  photoList:            { paddingVertical: 8 },
+  photoCard:            { marginRight: 12, alignItems: 'center' },
+  photoThumb:           { width: 80, height: 100, borderRadius: 4 },
+  photoDate:            { marginTop: 4, fontSize: 12, color: '#555' },
+
+  modalOverlay:         { ...StyleSheet.absoluteFillObject,
+                          backgroundColor: 'rgba(0,0,0,0.9)',
+                          justifyContent: 'center',
+                          alignItems: 'center' },
+  preview:              { position: 'absolute', resizeMode: 'contain' },
+  gridContainer:        { position: 'absolute' },
+  gridLineVertical:     { position: 'absolute', width: 1, backgroundColor: 'rgba(255,255,255,0.5)' },
+  gridLineHorizontal:   { position: 'absolute', height: 1, backgroundColor: 'rgba(255,255,255,0.5)' },
+  gridLineCenterVertical:   { width: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
+  gridLineCenterHorizontal: { height: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
+  closeBtn:             { position: 'absolute', top: 40, right: 20,
+                          backgroundColor: '#ffffff80', borderRadius: 20, padding: 8 },
+  closeText:            { fontSize: 18, fontWeight: 'bold', color: '#000' }
+});

@@ -19,8 +19,8 @@ import AddSessionScreen from './src/screens/AddSessionScreen';
 import EditStudentScreen from './src/screens/EditStudentScreen';
 import EditMeasurementScreen from './src/screens/EditMeasurementScreen';
 import EditSessionScreen from './src/screens/EditSessionScreen';
-// import PhotoReviewScreen from './src/screens/PhotoReviewScreen';
-// import CameraScreen from './src/screens/CameraScreen';
+import PhotoReviewScreen from './src/screens/PhotoReviewScreen';
+import CameraScreen from './src/screens/CameraScreen';
 
 
 
@@ -71,15 +71,16 @@ export default function App() {
           component={EditSessionScreen}
           options={{ title: 'Editează Sesiune' }}
         />
-        {/* <Stack.Screen 
+        <Stack.Screen 
           name="PhotoReview" 
           component={PhotoReviewScreen} 
           options={{ title: 'Review Photo' }}
-        /> */}
-        {/* <Stack.Screen 
-          name="Camera" 
-          component={CameraScreen} 
-        /> */}
+        />
+        <Stack.Screen
+          name="Camera"
+          component={CameraScreen}
+          options={{ title: 'Take Posture Photo', headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
