@@ -21,4 +21,5 @@ export type RootStackParamList = {
     };
     Camera: { studentId: number };
     PhotoReview:  { uri: string; studentId: number };
+    GalleryImport: undefined;     
 };

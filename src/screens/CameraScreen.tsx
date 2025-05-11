@@ -80,7 +80,8 @@ export default function CameraScreen({
               key={`v${i}`}
               style={[
                 styles.gridLineVertical,
-                { left: `${(i / 10) * 100}%` }
+                { left: `${(i / 10) * 100}%` },
+                i === 5 && styles.gridLineCenterVertical
               ]}
             />
           ))}
@@ -89,7 +90,8 @@ export default function CameraScreen({
               key={`h${j}`}
               style={[
                 styles.gridLineHorizontal,
-                { top: `${(j / 20) * 100}%` }
+                { top: `${(j / 20) * 100}%` },
+                j === 10 && styles.gridLineCenterHorizontal
               ]}
             />
           ))}
@@ -123,37 +125,39 @@ export default function CameraScreen({
 }
 
 const styles = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: '#000' },
-  camera:           { flex: 1 },
-  center:           { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
-  text:             { color: '#fff', marginBottom: 12, textAlign: 'center' },
-  btn:              { backgroundColor: '#007AFF', padding: 12, borderRadius: 6 },
-  btnText:          { color: '#fff', fontWeight: '600' },
-  gridContainer:    { ...StyleSheet.absoluteFillObject },
-  gridLineVertical: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: 'rgba(255,255,255,0.5)'
-  },
-  gridLineHorizontal: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.5)'
-  },
-  controls:         {
-    position: 'absolute',
-    bottom: 32,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-around'
-  },
-  controlBtn:       {
-    backgroundColor: '#ffffff80',
-    padding: 10,
-    borderRadius: 6
-  }
+  container:                 { flex: 1, backgroundColor: '#000' },
+  camera:                    { flex: 1 },
+  center:                    { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
+  text:                      { color: '#fff', marginBottom: 12, textAlign: 'center' },
+  btn:                       { backgroundColor: '#007AFF', padding: 12, borderRadius: 6 },
+  btnText:                   { color: '#fff', fontWeight: '600' },
+  gridContainer:             { ...StyleSheet.absoluteFillObject },
+  gridLineVertical:          {
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                width: 1,
+                                backgroundColor: 'rgba(255,255,255,0.5)'
+                              },
+  gridLineHorizontal:        {
+                                position: 'absolute',
+                                left: 0,
+                                right: 0,
+                                height: 1,
+                                backgroundColor: 'rgba(255,255,255,0.5)'
+                              },
+  gridLineCenterVertical:    { width: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
+  gridLineCenterHorizontal:  { height: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
+  controls:                  {
+                                position: 'absolute',
+                                bottom: 32,
+                                width: '100%',
+                                flexDirection: 'row',
+                                justifyContent: 'space-around'
+                              },
+  controlBtn:                {
+                                backgroundColor: '#ffffff80',
+                                padding: 10,
+                                borderRadius: 6
+                              }
 });

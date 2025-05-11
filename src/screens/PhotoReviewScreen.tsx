@@ -6,13 +6,12 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Alert
 } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp }                        from '@react-navigation/native';
-import { RootStackParamList }                    from '../navigation/types';
-import { API_URL }                               from '../services/api';
+import type { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/types';
+import { API_URL } from '../services/api';
 
 type ReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
 type ReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
@@ -30,14 +29,24 @@ export default function PhotoReviewScreen({
   const savePhoto = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/photos`, {
+      const data = new FormData();
+      data.append('photo', {
+        uri,
+        name: `posture_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+      } as any);
+      data.append('student_id', studentId.toString());
+
+      const res = await fetch(`${API_URL}/photos/upload`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId, uri })
+        // Nu specificăm manual Content-Type, FormData se ocupă de boundary
+        body: data,
       });
-      if (!res.ok) throw new Error('Save failed');
+      if (!res.ok) throw new Error('Failed to upload');
+
       Alert.alert('Saved', 'Photo has been saved.');
-      navigation.popToTop();
+      // Pop 2 nivele: PhotoReview -> Camera -> StudentDetail
+      navigation.pop(2);
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
@@ -45,33 +54,9 @@ export default function PhotoReviewScreen({
     }
   };
 
-  const { width, height } = Dimensions.get('window');
-
   return (
     <View style={styles.container}>
-      <View style={styles.previewContainer}>
-        <Image source={{ uri }} style={styles.preview} />
-        <View style={styles.gridContainer}>
-          {Array.from({ length: 11 }).map((_, i) => (
-            <View
-              key={`v${i}`}
-              style={[
-                styles.gridLineVertical,
-                { left: `${(i / 10) * 100}%` }
-              ]}
-            />
-          ))}
-          {Array.from({ length: 21 }).map((_, j) => (
-            <View
-              key={`h${j}`}
-              style={[
-                styles.gridLineHorizontal,
-                { top: `${(j / 20) * 100}%` }
-              ]}
-            />
-          ))}
-        </View>
-      </View>
+      <Image source={{ uri }} style={styles.preview} />
 
       <View style={styles.buttons}>
         <TouchableOpacity
@@ -96,40 +81,22 @@ export default function PhotoReviewScreen({
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: '#000' },
-  previewContainer:{ flex: 1 },
-  preview:         { flex: 1, resizeMode: 'cover' },
-  gridContainer:   {
-    ...StyleSheet.absoluteFillObject
-  },
-  gridLineVertical: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: 'rgba(255,255,255,0.5)'
-  },
-  gridLineHorizontal: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.5)'
-  },
-  buttons:         {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: '#111'
-  },
-  btn:             {
-    flex: 1,
-    marginHorizontal: 8,
-    padding: 14,
-    borderRadius: 6,
-    alignItems: 'center'
-  },
-  retake:          { backgroundColor: '#555' },
-  save:            { backgroundColor: '#28A745' },
-  btnText:         { color: '#fff', fontWeight: '600' }
+  container:        { flex: 1, backgroundColor: '#000' },
+  preview:          { flex: 1, resizeMode: 'contain' },
+  buttons:          {
+                      flexDirection: 'row',
+                      justifyContent: 'space-around',
+                      padding: 16,
+                      backgroundColor: '#111'
+                    },
+  btn:              {
+                      flex: 1,
+                      marginHorizontal: 8,
+                      padding: 14,
+                      borderRadius: 6,
+                      alignItems: 'center'
+                    },
+  retake:           { backgroundColor: '#555' },
+  save:             { backgroundColor: '#28A745' },
+  btnText:          { color: '#fff', fontWeight: '600' }
 });
