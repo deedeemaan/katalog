@@ -61,7 +61,7 @@ export default function CameraScreen({
       });
       navigation.navigate('PhotoReview', {
         uri: photo.uri,
-        studentId
+        studentId,
       });
     }
   };

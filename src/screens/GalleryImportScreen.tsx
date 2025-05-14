@@ -56,7 +56,6 @@ export default function GalleryImportScreen() {
   
         const res = await fetch(`${API_URL}/analyze-posture`, {
           method: 'POST',
-          // nu seta Content-Type!
           body: formData,
         });
   
@@ -106,8 +105,8 @@ export default function GalleryImportScreen() {
           {results.map((r, i) => (
             <Text key={i}>
               Img {i+1}: 
-              Umăr: {r.angles.shoulderTilt}°, 
-              Șold: {r.angles.hipTilt}°
+              Umăr: {r.angles.shoulderTilt.toFixed(2)}°, 
+              Șold: {r.angles.hipTilt.toFixed(2)}°
             </Text>
           ))}
         </View>
