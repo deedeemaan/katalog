@@ -16,7 +16,7 @@ import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
 type ReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
-type ReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
+type ReviewNavProp = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -28,7 +28,7 @@ export default function PhotoReviewScreen({
   route: ReviewRouteProp;
   navigation: ReviewNavProp;
 }) {
-  const { uri, studentId } = route.params;
+  const { uri, studentId, name } = route.params;
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -39,12 +39,12 @@ export default function PhotoReviewScreen({
       setAnalyzing(true);
       try {
         const data = new FormData();
-        data.append('photo', {
+        data.append('image', {
           uri,
           name: `review_${Date.now()}.jpg`,
           type: 'image/jpeg',
         } as any);
-        const res = await fetch(`${API_URL}/analyze-posture`, {
+        const res = await fetch(`${API_URL}/angles`, {
           method: 'POST',
           body: data,
         });
@@ -78,6 +78,9 @@ export default function PhotoReviewScreen({
       });
       if (!res.ok) throw new Error('Failed to upload');
 
+      const uploadResult = await res.json();
+      const imageUrl = uploadResult.uri;
+
       Alert.alert('Saved', 'Photo has been saved.');
       navigation.pop(2);
     } catch (err: any) {
@@ -87,37 +90,10 @@ export default function PhotoReviewScreen({
     }
   };
 
-  // Grid rendering
-  const renderGrid = () => (
-    <View style={styles.gridContainer} pointerEvents="none">
-      {Array.from({ length: 11 }).map((_, i) => (
-        <View
-          key={`v${i}`}
-          style={[
-            styles.gridLineVertical,
-            { left: `${(i / 10) * 100}%` },
-            i === 5 && styles.gridLineCenterVertical,
-          ]}
-        />
-      ))}
-      {Array.from({ length: 21 }).map((_, j) => (
-        <View
-          key={`h${j}`}
-          style={[
-            styles.gridLineHorizontal,
-            { top: `${(j / 20) * 100}%` },
-            j === 10 && styles.gridLineCenterHorizontal,
-          ]}
-        />
-      ))}
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <View style={styles.previewContainer}>
         <Image source={{ uri }} style={styles.preview} />
-        {renderGrid()}
         {analyzing && (
           <ActivityIndicator style={styles.loaderOverlay} size="large" color="#fff" />
         )}
@@ -134,7 +110,7 @@ export default function PhotoReviewScreen({
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.btn, styles.retake]}
-          onPress={() => navigation.replace('Camera', { studentId })}
+          onPress={() => navigation.replace('Camera', { studentId, name })}
         >
           <Text style={styles.btnText}>Retake</Text>
         </TouchableOpacity>
@@ -154,10 +130,10 @@ export default function PhotoReviewScreen({
 }
 
 const styles = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: '#000' },
   previewContainer: { flex: 1, position: 'relative' },
-  preview:          { flex: 1, width: '100%', height: '100%', resizeMode: 'cover', backgroundColor: '#111' },
-  gridContainer:    {
+  preview: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover', backgroundColor: '#111' },
+  gridContainer: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
     width: '100%',
@@ -214,6 +190,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   retake: { backgroundColor: '#555' },
-  save:   { backgroundColor: '#28A745' },
+  save: { backgroundColor: '#28A745' },
   btnText: { color: '#fff', fontWeight: '600' }
 });

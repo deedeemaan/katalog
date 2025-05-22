@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -49,12 +49,22 @@ type Photo = {
   student_id: number;
   uri: string;
   created_at: string;
+  angles?: {
+    shoulderTilt: number;
+    hipTilt: number;
+    spineTilt: number;
+  }
 };
 
 export default function StudentDetailScreen() {
   const route      = useRoute<DetailRouteProp>();
   const navigation = useNavigation<DetailNavProp>();
   const { id, name } = route.params;
+
+  // Schimbă titlul header-ului
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: `Detalii elev` });
+  }, [navigation, name]);
 
   const [initialLoading, setInitialLoading]     = useState(true);
   const [refreshing, setRefreshing]             = useState(false);
@@ -157,16 +167,36 @@ export default function StudentDetailScreen() {
       uri: photo.uri,
       name: `posture_${Date.now()}.jpg`,
       type: 'image/jpeg',
-    } as any); // <--- as any e necesar în React Native
-    data.append('student_id', String(studentId)); // asigură-te că e string
+    } as any);
+    data.append('student_id', String(studentId));
 
     try {
-      await fetch(`${API_URL}/photos/upload`, {
+      // 1. Upload photo
+      const uploadRes = await fetch(`${API_URL}/photos/upload`, {
         method: 'POST',
         body: data,
-        // !!! NU pune manual Content-Type, lasă fetch să-l seteze automat pentru FormData !!!
-        // headers: { 'Content-Type': 'multipart/form-data' }
       });
+      const uploadData = await uploadRes.json();
+      const photoId = uploadData.id; // asigură-te că backendul returnează id-ul pozei
+
+      // 2. Trimite la analiză (dacă ai endpointul /photos/:id/analyze)
+      if (photoId) {
+        const analyzeData = new FormData();
+        analyzeData.append('image', {
+          uri: photo.uri,
+          name: `posture_${Date.now()}.jpg`,
+          type: 'image/jpeg',
+        } as any);
+
+        await fetch(`${API_URL}/photos/${photoId}/analyze`, {
+          method: 'POST',
+          body: analyzeData,
+          headers: {
+            // Nu seta 'Content-Type' manual, lasă browserul să pună boundary-ul corect!
+          },
+        });
+      }
+
       fetchDetails({ silent: true });
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -241,8 +271,8 @@ export default function StudentDetailScreen() {
         scrollEnabled={false}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text>{new Date(item.session_date).toLocaleDateString()}</Text>
-            <Text style={{ fontWeight: '600', color: '#27ae60', marginBottom: 2 }}>
+            <Text>Data sesiunii: {new Date(item.session_date).toLocaleDateString()}</Text>
+            <Text style={{ fontWeight: '600', color: '#28A745', marginBottom: 2 }}>
               Tip sesiune: {item.session_type && item.session_type.trim() !== ''
                 ? item.session_type.charAt(0).toUpperCase() + item.session_type.slice(1)
                 : '—'}
@@ -283,37 +313,18 @@ export default function StudentDetailScreen() {
           <TouchableOpacity
             style={styles.photoCard}
             onPress={() => {
-              Alert.alert(
-                'Poză',
-                'Ce dorești să faci?',
-                [
-                  {
-                    text: 'Vezi mare',
-                    onPress: () => {
-                      setSelectedUri(getPhotoUri(item.uri));
-                      setSelectedPhotoId(item.id);
-                    }
-                  },
-                  {
-                    text: 'Șterge',
-                    style: 'destructive',
-                    onPress: () => {
-                      setSelectedPhotoId(item.id);
-                      confirmDeletePhoto();
-                    }
-                  },
-                  { text: 'Anulează', style: 'cancel' }
-                ]
-              );
+              setSelectedUri(getPhotoUri(item.uri));
+              setSelectedPhotoId(item.id);
             }}
           >
-            <Image
-              source={{ uri: getPhotoUri(item.uri) }}
-              style={styles.photoThumb}
-            />
-            <Text style={styles.photoDate}>
-              {new Date(item.created_at).toLocaleDateString()}
-            </Text>
+            <Image source={{ uri: getPhotoUri(item.uri) }} style={styles.photoThumb} />
+            {item.angles && (
+              <View style={styles.anglesBox}>
+                <Text style={styles.angleText}>Umăr: {item.angles.shoulderTilt?.toFixed(2)}°</Text>
+                <Text style={styles.angleText}>Șold: {item.angles.hipTilt?.toFixed(2)}°</Text>
+                <Text style={styles.angleText}>Coloană: {item.angles.spineTilt?.toFixed(2)}°</Text>
+              </View>
+            )}
           </TouchableOpacity>
         )}
       />
@@ -322,13 +333,13 @@ export default function StudentDetailScreen() {
       <View style={styles.footerBtns}>
         <TouchableOpacity
           style={[styles.button, styles.cameraButton]}
-          onPress={() => navigation.navigate('Camera', { studentId: id })}
+          onPress={() => navigation.navigate('Camera', { studentId: id, name })}
         >
           <Text style={styles.buttonText}>Open Camera</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.importButton]}
-          onPress={() => navigation.navigate('GalleryImport')}
+          onPress={() => navigation.navigate('GalleryImport', { studentId: id })}
         >
           <Text style={styles.buttonText}>Încarcă Poze</Text>
         </TouchableOpacity>
@@ -371,13 +382,13 @@ export default function StudentDetailScreen() {
               style={styles.smallBtn}
               onPress={() => setSelectedUri(null)}
             >
-              <Text style={styles.smallBtnText}>Close</Text>
+              <Text style={styles.smallBtnText}>✖️</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.smallBtn, styles.deleteBtn]}
               onPress={confirmDeletePhoto}
             >
-              <Text style={styles.smallBtnText}>Delete</Text>
+              <Text style={[styles.smallBtnText, { color: '#ff6b6b' }]}>🗑️</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -415,5 +426,7 @@ const styles = StyleSheet.create({
   modalBtns:                 { position:'absolute', bottom:40, flexDirection:'row', gap:12 },
   iconCircle:                { width:38, height:38, borderRadius:19, backgroundColor:'#f3f4f6', alignItems:'center', justifyContent:'center', marginHorizontal:2, borderWidth:1, borderColor:'#e0e0e0', shadowColor:'#000', shadowOpacity:0.06, shadowRadius:4, elevation:1 },
   iconDelete:                { backgroundColor:'#ffeaea', borderColor:'#ff6b6b' },
-  iconCircleText:            { fontSize:18 }
+  iconCircleText:            { fontSize:18 },
+  anglesBox:                 { backgroundColor:'#222c', padding:6, borderRadius:8, marginTop:4, alignItems:'center' },
+  angleText:                 { color:'#fff', fontSize:12, marginVertical:1 }
 });

@@ -27,7 +27,7 @@ export default function CameraScreen({
   route: CameraRouteProp;
   navigation: CameraNavProp;
 }) {
-  const { studentId } = route.params;
+  const { studentId, name } = route.params;
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraType, setCameraType]     = useState<CameraType>('back');
   const cameraRef = useRef<CameraView>(null);
@@ -62,6 +62,7 @@ export default function CameraScreen({
       navigation.navigate('PhotoReview', {
         uri: photo.uri,
         studentId,
+        name
       });
     }
   };
@@ -100,23 +101,28 @@ export default function CameraScreen({
         {/* Controls */}
         <View style={styles.controls}>
           <TouchableOpacity
-            style={styles.controlBtn}
-            onPress={() =>
-              setCameraType(ct => (ct === 'back' ? 'front' : 'back'))
-            }
+            style={styles.sideBtn}
+            onPress={() => setCameraType(ct => (ct === 'back' ? 'front' : 'back'))}
+            activeOpacity={0.7}
           >
-            <Text style={styles.btnText}>Flip</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.controlBtn} onPress={snap}>
-            <Text style={styles.btnText}>Snap</Text>
+            <Text style={styles.sideBtnIcon}>🔄</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.controlBtn}
-            onPress={() => navigation.goBack()}
+            style={styles.snapBtn}
+            onPress={snap}
+            activeOpacity={0.7}
           >
-            <Text style={styles.btnText}>Close</Text>
+            <View style={styles.snapInner} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.sideBtn}
+            // onPress={() => navigation.replace('StudentDetail', { id: studentId, name })}
+            onPress={() => navigation.popToTop()}           
+            activeOpacity={0.7}
+          >
+            <Text style={styles.sideBtnIcon}>✖️</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
@@ -128,7 +134,16 @@ const styles = StyleSheet.create({
   container:                 { flex: 1, backgroundColor: '#000' },
   camera:                    { flex: 1 },
   center:                    { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
-  text:                      { color: '#fff', marginBottom: 12, textAlign: 'center' },
+  text:                      {
+                                color: '#fff',
+                                marginBottom: 12,
+                                textAlign: 'center',
+                                textShadowColor: '#000',
+                                textShadowOffset: { width: 0, height: 1 },
+                                textShadowRadius: 4,
+                                fontSize: 18,
+                                fontWeight: '600',
+                              },
   btn:                       { backgroundColor: '#007AFF', padding: 12, borderRadius: 6 },
   btnText:                   { color: '#fff', fontWeight: '600' },
   gridContainer:             { ...StyleSheet.absoluteFillObject },
@@ -150,14 +165,51 @@ const styles = StyleSheet.create({
   gridLineCenterHorizontal:  { height: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
   controls:                  {
                                 position: 'absolute',
-                                bottom: 32,
+                                bottom: 38,
                                 width: '100%',
                                 flexDirection: 'row',
-                                justifyContent: 'space-around'
+                                justifyContent: 'space-between',
+                                alignItems: 'flex-end',
+                                paddingHorizontal: 38,
+                                zIndex: 10,
                               },
-  controlBtn:                {
-                                backgroundColor: '#ffffff80',
-                                padding: 10,
-                                borderRadius: 6
-                              }
+  sideBtn:                   {
+                                width: 44,
+                                height: 44,
+                                borderRadius: 22,
+                                backgroundColor: '#f3f4f6',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderWidth: 1,
+                                borderColor: '#e0e0e0',
+                                shadowColor: '#000',
+                                shadowOpacity: 0.08,
+                                shadowRadius: 3,
+                                elevation: 1,
+                              },
+  sideBtnIcon:               {
+                                fontSize: 22,
+                                color: '#3b5bfd',
+                                fontWeight: 'bold',
+                              },
+  snapBtn:                   {
+                                width: 74,
+                                height: 74,
+                                borderRadius: 37,
+                                borderWidth: 4,
+                                borderColor: '#27ae60',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#fff',
+                                shadowColor: '#27ae60',
+                                shadowOpacity: 0.13,
+                                shadowRadius: 8,
+                                elevation: 4,
+                              },
+  snapInner:                 {
+                                width: 54,
+                                height: 54,
+                                borderRadius: 27,
+                                backgroundColor: '#27ae60',
+                              },
 });

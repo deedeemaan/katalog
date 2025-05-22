@@ -19,7 +19,7 @@ export type RootStackParamList = {
             created_at: string;
         }
     };
-    Camera: { studentId: number };
-    PhotoReview:  { uri: string; studentId: number };
-    GalleryImport: undefined;     
+    Camera: { studentId: number, name: string };
+    PhotoReview:  { uri: string; studentId: number, name: string };
+    GalleryImport: {studentId: number};     
 };

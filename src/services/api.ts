@@ -1,12 +1,15 @@
-// export const API_URL = 'http://192.168.1.135:3000'; // pentru Android emulator: http://10.0.2.2:3000
 import { API_HOST } from '@env';
 
 export const API_URL = `http://${API_HOST}:3000`;
 
-export const getStudents = async () => {
-  const response = await fetch(`${API_URL}/students`);
-  return response.json();
-};
+export async function getStudents() {
+  const res = await fetch(`${API_URL}/students`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error('Eroare backend: ' + text);
+  }
+  return res.json();
+}
 
 // aici specificăm tipul datelor
 type StudentData = {
