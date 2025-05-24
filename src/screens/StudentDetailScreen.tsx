@@ -28,27 +28,27 @@ type DetailNavProp  = NativeStackNavigationProp<RootStackParamList, 'StudentDeta
 
 type Measurement = {
   id: number;
-  student_id: number;
+  studentId: number;
   height: number;
   weight: number;
-  head_circumference: number;
-  chest_circumference: number;
-  abdominal_circumference: number;
-  physical_disability: string;
-  created_at: string;
+  headCircumference: number;
+  chestCircumference: number;
+  abdominalCircumference: number;
+  physicalDisability: string;
+  createdAt: string;
 };
 type Session = {
   id: number;
-  student_id: number;
-  session_date: string;
+  studentId: number;
+  sessionDate: string;
   notes: string;
-  session_type?: string;
+  sessionType?: string;
 };
 type Photo = {
   id: number;
-  student_id: number;
+  studentId: number;
   uri: string;
-  created_at: string;
+  createdAt: string;
   angles?: {
     shoulderTilt: number;
     hipTilt: number;
@@ -168,7 +168,7 @@ export default function StudentDetailScreen() {
       name: `posture_${Date.now()}.jpg`,
       type: 'image/jpeg',
     } as any);
-    data.append('student_id', String(studentId));
+    data.append('studentId', String(studentId));
 
     try {
       // 1. Upload photo
@@ -230,13 +230,13 @@ export default function StudentDetailScreen() {
         scrollEnabled={false}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text>Data măsurătorilor: {new Date(item.created_at).toLocaleDateString()}</Text>
+            <Text>Data măsurătorilor: {new Date(item.createdAt).toLocaleDateString()}</Text>
             <Text>Înălțime: {item.height} cm</Text>
             <Text>Greutate: {item.weight} kg</Text>
-            <Text>Circumferință cap: {item.head_circumference} cm</Text>
-            <Text>Circumferință piept: {item.chest_circumference} cm</Text>
-            <Text>Circumferință abdomen: {item.abdominal_circumference} cm</Text>
-            <Text>Afecțiune fizică: {item.physical_disability || '—'}</Text>
+            <Text>Circumferință cap: {item.headCircumference} cm</Text>
+            <Text>Circumferință piept: {item.chestCircumference} cm</Text>
+            <Text>Circumferință abdomen: {item.abdominalCircumference} cm</Text>
+            <Text>Afecțiune fizică: {item.physicalDisability || '—'}</Text>
             <View style={styles.rowBtns}>
               <TouchableOpacity
                 style={styles.iconCircle}
@@ -271,10 +271,10 @@ export default function StudentDetailScreen() {
         scrollEnabled={false}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text>Data sesiunii: {new Date(item.session_date).toLocaleDateString()}</Text>
+            <Text>Data sesiunii: {new Date(item.sessionDate).toLocaleDateString()}</Text>
             <Text style={{ fontWeight: '600', color: '#28A745', marginBottom: 2 }}>
-              Tip sesiune: {item.session_type && item.session_type.trim() !== ''
-                ? item.session_type.charAt(0).toUpperCase() + item.session_type.slice(1)
+              Tip sesiune: {item.sessionType && item.sessionType.trim() !== ''
+                ? item.sessionType.charAt(0).toUpperCase() + item.sessionType.slice(1)
                 : '—'}
             </Text>
             <Text>Note: {item.notes}</Text>

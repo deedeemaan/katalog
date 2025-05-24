@@ -26,7 +26,7 @@ export default function EditSessionScreen() {
 
   // Convert ISO → DD-MM-YYYY for display
   const [sessionDate, setSessionDate] = useState(() => {
-    const d = new Date(session.session_date);
+    const d = new Date(session.sessionDate);
     const dd = String(d.getDate()).padStart(2,'0');
     const mm = String(d.getMonth()+1).padStart(2,'0');
     const yyyy = d.getFullYear();

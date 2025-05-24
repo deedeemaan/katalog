@@ -16,19 +16,19 @@ import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
 type MeasurementRouteProp = RouteProp<RootStackParamList, 'AddMeasurement'>;
-type MeasurementNavProp   = NativeStackNavigationProp<RootStackParamList, 'AddMeasurement'>;
+type MeasurementNavProp = NativeStackNavigationProp<RootStackParamList, 'AddMeasurement'>;
 
 
 export default function AddMeasurementScreen() {
-  const route      = useRoute<MeasurementRouteProp>();
+  const route = useRoute<MeasurementRouteProp>();
   const navigation = useNavigation<MeasurementNavProp>();
   const { studentId } = route.params;
 
-  const [height, setHeight]                       = useState('');
-  const [weight, setWeight]                       = useState('');
-  const [headCirc, setHeadCirc]                   = useState('');
-  const [chestCirc, setChestCirc]                 = useState('');
-  const [abdominalCirc, setAbdominalCirc]         = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [headCirc, setHeadCirc] = useState('');
+  const [chestCirc, setChestCirc] = useState('');
+  const [abdominalCirc, setAbdominalCirc] = useState('');
   const [physicalDisability, setPhysicalDisability] = useState('');
 
   const handleSave = async () => {
@@ -38,17 +38,21 @@ export default function AddMeasurementScreen() {
     }
 
     try {
+      if (isNaN(Number(height)) || isNaN(Number(weight))) {
+        Alert.alert('Eroare', 'Înălțimea și greutatea trebuie să fie numere.');
+        return;
+      }
       const response = await fetch(`${API_URL}/measurements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id:          studentId,
-          height:              Number(height),
-          weight:              Number(weight),
-          head_circumference:  Number(headCirc),
-          chest_circumference: Number(chestCirc),
-          abdominal_circumference: Number(abdominalCirc),
-          physical_disability: physicalDisability
+          studentId: studentId,
+          height: Number(height),
+          weight: Number(weight),
+          headCircumference: Number(headCirc),
+          chestCircumference: Number(chestCirc),
+          abdominalCircumference: Number(abdominalCirc),
+          physicalDisability: physicalDisability
         })
       });
 

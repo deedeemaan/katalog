@@ -5,7 +5,8 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from 'react-native';
 import {
   CameraView,
@@ -14,15 +15,15 @@ import {
   PermissionStatus
 } from 'expo-camera';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp }                      from '@react-navigation/native';
-import { RootStackParamList }                  from '../navigation/types';
+import type { RouteProp }                  from '@react-navigation/native';
+import { RootStackParamList }              from '../navigation/types';
+import { API_URL }                         from '../services/api';
 
 type CameraRouteProp = RouteProp<RootStackParamList, 'Camera'>;
 type CameraNavProp   = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 
 export default function CameraScreen({
-  route,
-  navigation
+  route, navigation
 }: {
   route: CameraRouteProp;
   navigation: CameraNavProp;
@@ -31,8 +32,8 @@ export default function CameraScreen({
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraType, setCameraType]     = useState<CameraType>('back');
   const cameraRef = useRef<CameraView>(null);
+  const [loading, setLoading] = useState(false);
 
-  // 1️⃣ Așteptăm permisiunile
   if (!permission) {
     return (
       <View style={styles.center}>
@@ -40,7 +41,6 @@ export default function CameraScreen({
       </View>
     );
   }
-  // 2️⃣ Cerem permisiunea dacă nu e încă acordată
   if (permission.status !== PermissionStatus.GRANTED) {
     return (
       <View style={styles.center}>
@@ -52,18 +52,65 @@ export default function CameraScreen({
     );
   }
 
-  // 3️⃣ Capturează poza și navighează spre PhotoReview
   const snap = async () => {
-    if (cameraRef.current) {
+    if (!cameraRef.current) return;
+    setLoading(true);
+    try {
+      // 1️⃣ Capture
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
         skipProcessing: true
       });
+      let fileUri = photo.uri;
+
+      // 2️⃣ Upload
+      const uploadData = new FormData();
+      uploadData.append('photo', {
+        uri: fileUri,
+        name: `student${studentId}_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+      } as any);
+      uploadData.append('studentId', String(studentId));
+
+      const uploadRes = await fetch(`${API_URL}/photos/upload`, {
+        method: 'POST',
+        body: uploadData
+      });
+      if (!uploadRes.ok) throw new Error(await uploadRes.text());
+      const { id: photoId } = await uploadRes.json();
+
+      // 3️⃣ Analyze + overlay
+      const analyzeData = new FormData();
+      analyzeData.append('image', {
+        uri: fileUri,
+        name: 'photo.jpg',
+        type: 'image/jpeg',
+      } as any);
+      analyzeData.append('photoId', String(photoId));
+
+      const analyzeRes = await fetch(`${API_URL}/posture/${photoId}/analyze`, {
+        method: 'POST',
+        body: analyzeData
+      });
+      if (!analyzeRes.ok) throw new Error(await analyzeRes.text());
+      const analyzeJson = await analyzeRes.json();
+      // { posture, angles, overlay }
+
+      // 4️⃣ Navigate to PhotoReview
       navigation.navigate('PhotoReview', {
-        uri: photo.uri,
+        uri:     photo.uri,
+        overlay: analyzeJson.overlay,
+        angles:  analyzeJson.angles,
+        posture: analyzeJson.posture,
         studentId,
         name
       });
+
+    } catch (e: any) {
+      console.error(e);
+      Alert.alert('Eroare', e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,6 +121,12 @@ export default function CameraScreen({
         style={styles.camera}
         facing={cameraType}
       >
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+
         {/* Grid overlay: 10cm×10cm squares */}
         <View style={styles.gridContainer}>
           {Array.from({ length: 11 }).map((_, i) => (
@@ -112,14 +165,14 @@ export default function CameraScreen({
             style={styles.snapBtn}
             onPress={snap}
             activeOpacity={0.7}
+            disabled={loading}
           >
             <View style={styles.snapInner} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.sideBtn}
-            // onPress={() => navigation.replace('StudentDetail', { id: studentId, name })}
-            onPress={() => navigation.popToTop()}           
+            onPress={() => navigation.popToTop()}
             activeOpacity={0.7}
           >
             <Text style={styles.sideBtnIcon}>✖️</Text>
@@ -212,4 +265,11 @@ const styles = StyleSheet.create({
                                 borderRadius: 27,
                                 backgroundColor: '#27ae60',
                               },
+  loadingOverlay:            {
+                                ...StyleSheet.absoluteFillObject,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                zIndex: 10
+                              }
 });

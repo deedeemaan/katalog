@@ -70,7 +70,7 @@ export default function PhotoReviewScreen({
         name: `posture_${Date.now()}.jpg`,
         type: 'image/jpeg',
       } as any);
-      data.append('student_id', studentId.toString());
+      data.append('studentId', studentId.toString());
 
       const res = await fetch(`${API_URL}/photos/upload`, {
         method: 'POST',
@@ -101,9 +101,15 @@ export default function PhotoReviewScreen({
 
       {result && result.angles && (
         <View style={styles.results}>
-          <Text style={styles.resultText}>Umăr: {result.angles.shoulderTilt?.toFixed(2)}°</Text>
-          <Text style={styles.resultText}>Șold: {result.angles.hipTilt?.toFixed(2)}°</Text>
-          <Text style={styles.resultText}>Coloană: {result.angles.spineTilt?.toFixed(2)}°</Text>
+          <Text style={styles.resultText}>
+            Deficiență unghi umeri: {Number(result.angles.shoulderTilt).toFixed(2)}°
+          </Text>
+          <Text style={styles.resultText}>
+            Deficiență unghi șolduri: {Number(result.angles.hipTilt).toFixed(2)}°
+          </Text>
+          <Text style={styles.resultText}>
+            Deficiență unghi coloană: {Number(result.angles.spineTilt).toFixed(2)}°
+          </Text>
         </View>
       )}
 

@@ -5,21 +5,27 @@ export type RootStackParamList = {
     StudentDetail: { id: number; name: string };
     AddMeasurement: { studentId: number };
     AddSession: { studentId: number };
-    EditSession: { session: { id: number; student_id: number; session_date: string; notes: string } };
+    EditSession: { session: { id: number; studentId: number; sessionDate: string; notes: string } };
     EditMeasurement: {
         measurement: {
             id: number;
-            student_id: number;
+            studentId: number;
             height: number;
             weight: number;
-            head_circumference: number;
-            chest_circumference: number;
-            abdominal_circumference: number;
-            physical_disability: string;
-            created_at: string;
+            headCircumference: number;
+            chestCircumference: number;
+            abdominalCircumference: number;
+            physicalDisability: string;
+            createdAt: string;
         }
     };
     Camera: { studentId: number, name: string };
-    PhotoReview:  { uri: string; studentId: number, name: string };
-    GalleryImport: {studentId: number};     
+    PhotoReview: {
+        uri: string;
+        studentId: number;
+        name: string;
+        overlay: string; // base64
+        angles: { shoulderTilt: number; hipTilt: number; spineTilt: number };
+        posture: { id: number; photoId: number; shoulderTilt: string; hipTilt: string; spineTilt: string; createdAt: string };
+    }; GalleryImport: { studentId: number };
 };

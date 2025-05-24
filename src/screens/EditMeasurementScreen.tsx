@@ -27,10 +27,10 @@ export default function EditMeasurementScreen() {
 
   const [height, setHeight]                       = useState(measurement.height.toString());
   const [weight, setWeight]                       = useState(measurement.weight.toString());
-  const [headCirc, setHeadCirc]                   = useState(measurement.head_circumference.toString());
-  const [chestCirc, setChestCirc]                 = useState(measurement.chest_circumference.toString());
-  const [abdominalCirc, setAbdominalCirc]         = useState(measurement.abdominal_circumference.toString());
-  const [physicalDisability, setPhysicalDisability] = useState(measurement.physical_disability);
+  const [headCirc, setHeadCirc]                   = useState(measurement.headCircumference.toString());
+  const [chestCirc, setChestCirc]                 = useState(measurement.chestCircumference.toString());
+  const [abdominalCirc, setAbdominalCirc]         = useState(measurement.abdominalCircumference.toString());
+  const [physicalDisability, setPhysicalDisability] = useState(measurement.physicalDisability);
 
   const handleSave = async () => {
     if (!height || !weight) {
@@ -45,10 +45,10 @@ export default function EditMeasurementScreen() {
         body: JSON.stringify({
           height: Number(height),
           weight: Number(weight),
-          head_circumference:  Number(headCirc),
-          chest_circumference: Number(chestCirc),
-          abdominal_circumference: Number(abdominalCirc),
-          physical_disability: physicalDisability
+          headCircumference:  Number(headCirc),
+          chestCircumference: Number(chestCirc),
+          abdominalCircumference: Number(abdominalCirc),
+          physicalDisability: physicalDisability
         })
       });
 

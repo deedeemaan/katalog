@@ -26,25 +26,25 @@ export default function AddSessionScreen() {
   const [sessionDate, setSessionDate] = useState<Date>(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [notes, setNotes] = useState('');
-  const [session_type, setSession_type] = useState(SESSION_TYPES[0].value);
+  const [sessionType, setSession_type] = useState(SESSION_TYPES[0].value);
 
   const handleSave = async () => {
     try {
       const apiDate = sessionDate.toISOString().slice(0, 10);
       console.log({
-        student_id: studentId,
-        session_date: apiDate,
+        studentId: studentId,
+        sessionDate: apiDate,
         notes,
-        session_type
+        sessionType
       });
       const response = await fetch(`${API_URL}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id:  studentId,
-          session_date: apiDate,
+          studentId:  studentId,
+          sessionDate: apiDate,
           notes,
-          session_type
+          sessionType
         })
       });
       if (!response.ok) {
@@ -99,14 +99,14 @@ export default function AddSessionScreen() {
                 key={opt.value}
                 style={[
                   styles.sessionTypeBtn,
-                  session_type === opt.value && styles.sessionTypeBtnActive
+                  sessionType === opt.value && styles.sessionTypeBtnActive
                 ]}
                 onPress={() => setSession_type(opt.value)}
               >
                 <Text
                   style={[
                     styles.sessionTypeText,
-                    session_type === opt.value && styles.sessionTypeTextActive
+                    sessionType === opt.value && styles.sessionTypeTextActive
                   ]}
                 >
                   {opt.label}

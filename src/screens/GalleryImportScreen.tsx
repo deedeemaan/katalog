@@ -73,7 +73,7 @@ export default function GalleryImportScreen() {
           name: 'photo.jpg',
           type: 'image/jpeg',
         } as any);
-        uploadData.append('student_id', String(studentId)); // <-- OBLIGATORIU
+        uploadData.append('studentId', String(studentId)); 
 
         const uploadRes = await fetch(`${API_URL}/photos/upload`, {
           method: 'POST',
@@ -93,20 +93,26 @@ export default function GalleryImportScreen() {
           name: 'photo.jpg',
           type: 'image/jpeg',
         } as any);
+        analyzeData.append('photoId', String(photoId));
 
         const analyzeRes = await fetch(`${API_URL}/posture/${photoId}/analyze`, {
           method: 'POST',
           body: analyzeData,
           // NU seta manual Content-Type!
         }); // presupunând că backend ia imaginea din DB direct pe baza ID-ului
-        
+
         if (!analyzeRes.ok) {
           const errText = await analyzeRes.text();
           throw new Error('Analyze error: ' + errText);
         }
         const analyzeJson = await analyzeRes.json();
 
-        all.push({ uri, ...analyzeJson });
+        all.push({
+          uri,
+          angles: analyzeJson.angles,
+          overlay: analyzeJson.overlay,    // Base64-ul pe care-l primești
+          posture: analyzeJson.posture,    // dacă ai și entitatea salvată
+        });
       }
       setResults(all);
     } catch (err: any) {
@@ -141,26 +147,42 @@ export default function GalleryImportScreen() {
         </Text>
       </TouchableOpacity>
 
+
       {results.length > 0 && (
         <View style={styles.results}>
           <Text style={styles.subtitle}>Rezultate:</Text>
-          {results.map((r, i) => (
-            r.angles ? (
-              <Text key={i}>
-                Img {i + 1}:
-                Umăr: {r.angles.shoulderTilt.toFixed(2)}°,
-                Șold: {r.angles.hipTilt.toFixed(2)}°
-              </Text>
-            ) : (
-              <Text key={i} style={{ color: 'red' }}>
-                Img {i + 1}: Analiza a eșuat sau nu există unghiuri.
-              </Text>
-            )
-          ))}
+          {results.map((r, i) => {
+            if (r.angles && r.overlay) {
+              return (
+                <View key={i} style={{ marginBottom: 16, alignItems: 'center' }}>
+                  <Text>Poza {i + 1}:</Text>
+                  <Image
+                    source={{ uri: `data:image/jpeg;base64,${r.overlay}` }}
+                    style={{ width: 200, height: 200, marginVertical: 8 }}
+                  />
+                  <Text>
+                    Deficiență umăr: {r.angles.shoulderTilt.toFixed(2)}°,
+                  </Text>
+                  <Text>
+                    Deficiență șold: {r.angles.hipTilt.toFixed(2)}°,
+                  </Text>
+                  <Text>
+                    Deficiență coloană: {r.angles.spineTilt.toFixed(2)}°,
+                  </Text>
+                </View>
+              );
+            } else {
+              return (
+                <Text key={i} style={{ color: 'red' }}>
+                  Poza {i + 1}: Analiza a eșuat sau nu există unghiuri.
+                </Text>
+              );
+            }
+          })}
         </View>
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
