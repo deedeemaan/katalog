@@ -3,29 +3,30 @@ export type RootStackParamList = {
     AddStudent: undefined;
     EditStudent: { student: { id: number; name: string; age: number; condition: string; notes: string } };
     StudentDetail: { id: number; name: string };
-    AddMeasurement: { studentId: number };
-    AddSession: { studentId: number };
-    EditSession: { session: { id: number; studentId: number; sessionDate: string; notes: string } };
+    AddMeasurement: { student_id: number };
+    AddSession: { student_id: number };
+    EditSession: { session: { id: number; student_id: number; session_date: string; notes: string } };
     EditMeasurement: {
         measurement: {
             id: number;
-            studentId: number;
+            student_id: number;
             height: number;
             weight: number;
-            headCircumference: number;
-            chestCircumference: number;
-            abdominalCircumference: number;
-            physicalDisability: string;
-            createdAt: string;
+            head_circumference: number;
+            chest_circumference: number;
+            abdominal_circumference: number;
+            physical_disability: string;
+            created_at: string;
         }
     };
-    Camera: { studentId: number, name: string };
+    Camera: { student_id: number; name: string };
     PhotoReview: {
         uri: string;
-        studentId: number;
+        student_id: number;
         name: string;
         overlay: string; // base64
-        angles: { shoulderTilt: number; hipTilt: number; spineTilt: number };
-        posture: { id: number; photoId: number; shoulderTilt: string; hipTilt: string; spineTilt: string; createdAt: string };
-    }; GalleryImport: { studentId: number };
+        angles: { shoulder_tilt: number; hip_tilt: number; spine_tilt: number };
+        posture: { id: number; photo_id: number; shoulder_tilt: string; hip_tilt: string; spine_tilt: string; created_at: string };
+    };
+    GalleryImport: { student_id: number };
 };

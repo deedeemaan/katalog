@@ -17,7 +17,7 @@ import { API_URL } from '../services/api';
 
 export default function GalleryImportScreen() {
   const route = useRoute<any>();
-  const { studentId } = route.params;
+  const { student_id } = route.params;
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [results, setResults] = useState<any[]>([]);
@@ -68,12 +68,13 @@ export default function GalleryImportScreen() {
         console.log('fileUri:', fileUri);
 
         const uploadData = new FormData();
+        uploadData.append('student_id', String(student_id)); 
         uploadData.append('photo', {
           uri: fileUri,
           name: 'photo.jpg',
           type: 'image/jpeg',
         } as any);
-        uploadData.append('studentId', String(studentId)); 
+        
 
         const uploadRes = await fetch(`${API_URL}/photos/upload`, {
           method: 'POST',
@@ -84,7 +85,7 @@ export default function GalleryImportScreen() {
           throw new Error('Upload error: ' + errText);
         }
         const uploadJson = await uploadRes.json();
-        const photoId = uploadJson.id;
+        const photo_id = uploadJson.id;
 
         // 2. Analyze photo
         const analyzeData = new FormData();
@@ -93,9 +94,9 @@ export default function GalleryImportScreen() {
           name: 'photo.jpg',
           type: 'image/jpeg',
         } as any);
-        analyzeData.append('photoId', String(photoId));
+        analyzeData.append('photo_id', String(photo_id));
 
-        const analyzeRes = await fetch(`${API_URL}/posture/${photoId}/analyze`, {
+        const analyzeRes = await fetch(`${API_URL}/posture/${photo_id}/analyze`, {
           method: 'POST',
           body: analyzeData,
           // NU seta manual Content-Type!
@@ -106,12 +107,13 @@ export default function GalleryImportScreen() {
           throw new Error('Analyze error: ' + errText);
         }
         const analyzeJson = await analyzeRes.json();
+        console.log('Analyze result:', analyzeJson);
 
         all.push({
           uri,
           angles: analyzeJson.angles,
-          overlay: analyzeJson.overlay,    // Base64-ul pe care-l primești
-          posture: analyzeJson.posture,    // dacă ai și entitatea salvată
+          overlay: analyzeJson.overlay_uri, // Folosește overlay_uri din răspuns
+          posture: analyzeJson.posture,
         });
       }
       setResults(all);
@@ -157,18 +159,13 @@ export default function GalleryImportScreen() {
                 <View key={i} style={{ marginBottom: 16, alignItems: 'center' }}>
                   <Text>Poza {i + 1}:</Text>
                   <Image
-                    source={{ uri: `data:image/jpeg;base64,${r.overlay}` }}
+                    source={{ uri: r.overlay }} // Folosește direct overlay-ul
                     style={{ width: 200, height: 200, marginVertical: 8 }}
+                    onError={() => console.error('Failed to load image:', r.overlay)}
                   />
-                  <Text>
-                    Deficiență umăr: {r.angles.shoulderTilt.toFixed(2)}°,
-                  </Text>
-                  <Text>
-                    Deficiență șold: {r.angles.hipTilt.toFixed(2)}°,
-                  </Text>
-                  <Text>
-                    Deficiență coloană: {r.angles.spineTilt.toFixed(2)}°,
-                  </Text>
+                  <Text>Deficiență umăr: {Number(r.angles.shoulderTilt).toFixed(2)}°</Text>
+                  <Text>Deficiență șold: {Number(r.angles.hipTilt).toFixed(2)}°</Text>
+                  <Text>Deficiență coloană: {Number(r.angles.spineTilt).toFixed(2)}°</Text>
                 </View>
               );
             } else {

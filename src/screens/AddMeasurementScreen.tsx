@@ -1,3 +1,4 @@
+// src/screens/AddMeasurementScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -18,11 +19,10 @@ import { API_URL } from '../services/api';
 type MeasurementRouteProp = RouteProp<RootStackParamList, 'AddMeasurement'>;
 type MeasurementNavProp = NativeStackNavigationProp<RootStackParamList, 'AddMeasurement'>;
 
-
 export default function AddMeasurementScreen() {
   const route = useRoute<MeasurementRouteProp>();
   const navigation = useNavigation<MeasurementNavProp>();
-  const { studentId } = route.params;
+  const { student_id } = route.params;
 
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
@@ -36,40 +36,43 @@ export default function AddMeasurementScreen() {
       Alert.alert('Eroare', 'Introduceți înălțimea și greutatea.');
       return;
     }
+    if (isNaN(Number(height)) || isNaN(Number(weight))) {
+      Alert.alert('Eroare', 'Înălțimea și greutatea trebuie să fie numere.');
+      return;
+    }
 
     try {
-      if (isNaN(Number(height)) || isNaN(Number(weight))) {
-        Alert.alert('Eroare', 'Înălțimea și greutatea trebuie să fie numere.');
-        return;
-      }
       const response = await fetch(`${API_URL}/measurements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentId: studentId,
+          student_id,
           height: Number(height),
           weight: Number(weight),
-          headCircumference: Number(headCirc),
-          chestCircumference: Number(chestCirc),
-          abdominalCircumference: Number(abdominalCirc),
-          physicalDisability: physicalDisability
+          head_circumference: headCirc ? Number(headCirc) : null,
+          chest_circumference: chestCirc ? Number(chestCirc) : null,
+          abdominal_circumference: abdominalCirc ? Number(abdominalCirc) : null,
+          physical_disability: physicalDisability || null
         })
       });
 
-      if (!response.ok) throw new Error('Failed to save');
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Eroare la salvare');
+      }
 
       Alert.alert('Succes', 'Măsurătoarea a fost salvată.');
       navigation.goBack();
     } catch (err: any) {
       console.error(err);
-      Alert.alert('Eroare', 'Nu s-a putut salva măsurătoarea.');
+      Alert.alert('Eroare', err.message || 'Nu s-a putut salva măsurătoarea.');
     }
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={{ flex: 1, backgroundColor: '#f8f9fb' }}
+      style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.outerContainer}>
         <View style={styles.card}>
@@ -161,11 +164,11 @@ export default function AddMeasurementScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8f9fb' },
   outerContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 18,
-    backgroundColor: '#f8f9fb',
+    padding: 18
   },
   card: {
     backgroundColor: '#fff',
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    elevation: 4
   },
   header: {
     fontSize: 26,
@@ -183,25 +186,25 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     color: '#3b5bfd',
     letterSpacing: 1,
-    textAlign: 'center',
+    textAlign: 'center'
   },
   label: {
     marginTop: 14,
     fontWeight: '600',
     color: '#222',
-    marginBottom: 2,
+    marginBottom: 2
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 2
   },
   inputIcon: {
     fontSize: 18,
     marginRight: 8,
     color: '#3b5bfd',
     width: 26,
-    textAlign: 'center',
+    textAlign: 'center'
   },
   input: {
     flex: 1,
@@ -213,12 +216,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#222',
     marginTop: 4,
-    marginBottom: 2,
+    marginBottom: 2
   },
   multiline: {
     height: 80,
     textAlignVertical: 'top',
-    marginTop: 4,
+    marginTop: 4
   },
   button: {
     backgroundColor: '#3b5bfd',
@@ -229,12 +232,12 @@ const styles = StyleSheet.create({
     shadowColor: '#3b5bfd',
     shadowOpacity: 0.18,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 4
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 17,
-    letterSpacing: 1,
+    letterSpacing: 1
   }
 });

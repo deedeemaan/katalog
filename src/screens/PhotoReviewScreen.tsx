@@ -16,7 +16,7 @@ import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
 type ReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
-type ReviewNavProp = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
+type ReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -28,12 +28,11 @@ export default function PhotoReviewScreen({
   route: ReviewRouteProp;
   navigation: ReviewNavProp;
 }) {
-  const { uri, studentId, name } = route.params;
-  const [saving, setSaving] = useState(false);
+  const { uri, student_id, name } = route.params;
+  const [saving, setSaving]       = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult]       = useState<any>(null);
 
-  // Analizează poza la mount
   useEffect(() => {
     const analyze = async () => {
       setAnalyzing(true);
@@ -70,7 +69,7 @@ export default function PhotoReviewScreen({
         name: `posture_${Date.now()}.jpg`,
         type: 'image/jpeg',
       } as any);
-      data.append('studentId', studentId.toString());
+      data.append('student_id', student_id.toString());
 
       const res = await fetch(`${API_URL}/photos/upload`, {
         method: 'POST',
@@ -78,9 +77,7 @@ export default function PhotoReviewScreen({
       });
       if (!res.ok) throw new Error('Failed to upload');
 
-      const uploadResult = await res.json();
-      const imageUrl = uploadResult.uri;
-
+      await res.json();
       Alert.alert('Saved', 'Photo has been saved.');
       navigation.pop(2);
     } catch (err: any) {
@@ -116,7 +113,7 @@ export default function PhotoReviewScreen({
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.btn, styles.retake]}
-          onPress={() => navigation.replace('Camera', { studentId, name })}
+          onPress={() => navigation.replace('Camera', { student_id, name })}
         >
           <Text style={styles.btnText}>Retake</Text>
         </TouchableOpacity>
@@ -136,66 +133,39 @@ export default function PhotoReviewScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  previewContainer: { flex: 1, position: 'relative' },
-  preview: { flex: 1, width: '100%', height: '100%', resizeMode: 'cover', backgroundColor: '#111' },
-  gridContainer: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 10,
-  },
-  gridLineVertical: {
-    position: 'absolute',
-    top: 0, bottom: 0,
-    width: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  gridLineCenterVertical: {
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    width: 2,
-  },
-  gridLineHorizontal: {
-    position: 'absolute',
-    left: 0, right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  gridLineCenterHorizontal: {
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    height: 2,
-  },
-  loaderOverlay: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 20,
-    backgroundColor: 'rgba(0,0,0,0.15)'
-  },
-  results: {
-    backgroundColor: '#222c',
-    padding: 14,
-    borderRadius: 10,
-    margin: 16,
-    alignItems: 'center',
-  },
-  resultText: { color: '#fff', fontSize: 16, marginVertical: 2 },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: '#111'
-  },
-  btn: {
-    flex: 1,
-    marginHorizontal: 8,
-    padding: 14,
-    borderRadius: 6,
-    alignItems: 'center'
-  },
-  retake: { backgroundColor: '#555' },
-  save: { backgroundColor: '#28A745' },
-  btnText: { color: '#fff', fontWeight: '600' }
+  container:            { flex: 1, backgroundColor: '#000' },
+  previewContainer:     { flex: 1, position: 'relative' },
+  preview:              { flex: 1, width: '100%', height: '100%', resizeMode: 'cover', backgroundColor: '#111' },
+  loaderOverlay:        {
+                          position: 'absolute',
+                          top: 0, left: 0, right: 0, bottom: 0,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          zIndex: 20,
+                          backgroundColor: 'rgba(0,0,0,0.15)'
+                        },
+  results:              {
+                          backgroundColor: '#222c',
+                          padding: 14,
+                          borderRadius: 10,
+                          margin: 16,
+                          alignItems: 'center',
+                        },
+  resultText:           { color: '#fff', fontSize: 16, marginVertical: 2 },
+  buttons:              {
+                          flexDirection: 'row',
+                          justifyContent: 'space-around',
+                          padding: 16,
+                          backgroundColor: '#111'
+                        },
+  btn:                  {
+                          flex: 1,
+                          marginHorizontal: 8,
+                          padding: 14,
+                          borderRadius: 6,
+                          alignItems: 'center'
+                        },
+  retake:               { backgroundColor: '#555' },
+  save:                 { backgroundColor: '#28A745' },
+  btnText:              { color: '#fff', fontWeight: '600' }
 });

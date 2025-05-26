@@ -1,7 +1,15 @@
+// src/screens/AddSessionScreen.tsx
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
@@ -21,30 +29,24 @@ const SESSION_TYPES = [
 export default function AddSessionScreen() {
   const route      = useRoute<SessionRouteProp>();
   const navigation = useNavigation<SessionNavProp>();
-  const { studentId } = route.params;
+  const { student_id } = route.params;
 
-  const [sessionDate, setSessionDate] = useState<Date>(new Date());
-  const [showPicker, setShowPicker] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [sessionType, setSession_type] = useState(SESSION_TYPES[0].value);
+  const [session_date, setSessionDate] = useState<Date>(new Date());
+  const [showPicker, setShowPicker]   = useState(false);
+  const [notes, setNotes]             = useState('');
+  const [session_type, setSessionType] = useState(SESSION_TYPES[0].value);
 
   const handleSave = async () => {
     try {
-      const apiDate = sessionDate.toISOString().slice(0, 10);
-      console.log({
-        studentId: studentId,
-        sessionDate: apiDate,
-        notes,
-        sessionType
-      });
+      const apiDate = session_date.toISOString().slice(0, 10);
       const response = await fetch(`${API_URL}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentId:  studentId,
-          sessionDate: apiDate,
+          student_id,
+          session_date: apiDate,
           notes,
-          sessionType
+          session_type
         })
       });
       if (!response.ok) {
@@ -55,14 +57,14 @@ export default function AddSessionScreen() {
       navigation.goBack();
     } catch (err: any) {
       console.error(err);
-      Alert.alert('Eroare', err.message);
+      Alert.alert('Eroare', err.message || 'Nu s-a putut salva sesiunea.');
     }
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={{ flex: 1, backgroundColor: '#f8f9fb' }}
+      style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.outerContainer}>
         <View style={styles.card}>
@@ -76,12 +78,12 @@ export default function AddSessionScreen() {
           >
             <Text style={styles.inputIcon}>📅</Text>
             <Text style={styles.inputText}>
-              {sessionDate.toLocaleDateString()}
+              {session_date.toLocaleDateString()}
             </Text>
           </TouchableOpacity>
           {showPicker && (
             <DateTimePicker
-              value={sessionDate}
+              value={session_date}
               mode="date"
               display="default"
               onChange={(_, date) => {
@@ -99,14 +101,14 @@ export default function AddSessionScreen() {
                 key={opt.value}
                 style={[
                   styles.sessionTypeBtn,
-                  sessionType === opt.value && styles.sessionTypeBtnActive
+                  session_type === opt.value && styles.sessionTypeBtnActive
                 ]}
-                onPress={() => setSession_type(opt.value)}
+                onPress={() => setSessionType(opt.value)}
               >
                 <Text
                   style={[
                     styles.sessionTypeText,
-                    sessionType === opt.value && styles.sessionTypeTextActive
+                    session_type === opt.value && styles.sessionTypeTextActive
                   ]}
                 >
                   {opt.label}
@@ -136,6 +138,7 @@ export default function AddSessionScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8f9fb' },
   outerContainer: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -204,29 +207,11 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     marginTop: 4,
   },
-  button: {
-    backgroundColor: '#3b5bfd',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 28,
-    alignItems: 'center',
-    shadowColor: '#3b5bfd',
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 17,
-    letterSpacing: 1,
-  },
   sessionTypeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 8,
     marginBottom: 8,
-    gap: 8,
   },
   sessionTypeBtn: {
     flex: 1,
@@ -249,5 +234,22 @@ const styles = StyleSheet.create({
   },
   sessionTypeTextActive: {
     color: '#fff',
+  },
+  button: {
+    backgroundColor: '#3b5bfd',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 28,
+    alignItems: 'center',
+    shadowColor: '#3b5bfd',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 17,
+    letterSpacing: 1,
   },
 });
