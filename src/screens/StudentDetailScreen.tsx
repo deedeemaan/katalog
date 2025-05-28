@@ -91,6 +91,8 @@ export default function StudentDetailScreen() {
       ? uri
       : `${API_URL}/uploads/${uri}`;
 
+  const getFullUri = (relativePath: string) => `${API_URL}${relativePath}`;
+
   // Fetch all data; silent=true skips the full-screen spinner
   const fetchDetails = useCallback(
     async (opts: { silent: boolean }) => {
@@ -333,19 +335,23 @@ export default function StudentDetailScreen() {
         keyExtractor={p => p.id.toString()}
         renderItem={({ item }) => {
           const last = item.history?.[0]; // cea mai recentă analiză
-          const uri = last?.overlay_uri
-            ? last.overlay_uri // folosește overlay dacă există
-            : getPhotoUri(item.uri); // fallback la poza originală
+          const uri = last?.overlay_uri ? getFullUri(last.overlay_uri) : undefined;
 
           return (
             <TouchableOpacity
               onPress={() => {
-                setSelectedUri(uri); // setează URI-ul imaginii selectate
-                setSelectedPhotoId(item.id); // setează ID-ul imaginii selectate
+                if (uri) {
+                  setSelectedUri(uri); // setează URI-ul imaginii selectate
+                  setSelectedPhotoId(item.id); // setează ID-ul imaginii selectate
+                }
               }}
             >
               <View style={styles.photoCard}>
-                <Image source={{ uri }} style={styles.photoThumb} />
+                <Image
+                  source={{ uri }}
+                  style={styles.photoThumb}
+                  onError={(error) => console.error('Failed to load image:', uri, error.nativeEvent)}
+                />
                 {last && (
                   <View style={styles.anglesBox}>
                     <Text>Umăr: {Number(last.shoulder_tilt).toFixed(1)}°</Text>
@@ -414,6 +420,11 @@ const styles = StyleSheet.create({
   header: { fontSize: 26, fontWeight: 'bold', margin: 20, color: '#3b5bfd', letterSpacing: 1 },
   subheader: { fontSize: 18, fontWeight: '700', marginHorizontal: 20, marginTop: 20, marginBottom: 8, color: '#222', letterSpacing: 0.5 },
   card: { backgroundColor: '#fff', padding: 18, borderRadius: 16, marginHorizontal: 16, marginVertical: 8, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  cardRow: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  avatar: { width: 50, height: 50, borderRadius: 25, overflow: 'hidden', marginRight: 12 },
+  name: { fontSize: 16, fontWeight: '600', color: '#333' },
+  info: { fontSize: 14, color: '#666' },
+  infoValue: { fontWeight: '500' },
   rowBtns: { flexDirection: 'row', marginTop: 12, gap: 8 },
   smallBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#e3e8ff', alignItems: 'center', justifyContent: 'center', marginHorizontal: 2, borderWidth: 1, borderColor: '#3b5bfd', shadowColor: '#3b5bfd', shadowOpacity: 0.10, shadowRadius: 4, elevation: 1 },
   deleteBtn: { backgroundColor: '#ffeaea', borderColor: '#ff6b6b', shadowColor: '#ff6b6b' },
@@ -425,7 +436,14 @@ const styles = StyleSheet.create({
   footerBtns: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 32, marginTop: 8, gap: 12 },
   photoList: { paddingHorizontal: 20, paddingVertical: 8 },
   photoCard: { marginRight: 16, alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 6, shadowColor: '#000', shadowOpacity: 0.10, shadowRadius: 6, elevation: 2, borderWidth: 1, borderColor: '#e0e0e0' },
-  photoThumb: { width: 90, height: 110, borderRadius: 8, borderWidth: 2, borderColor: '#3b5bfd', backgroundColor: '#f3f4f6' },
+  photoThumb: {
+    width: 90,
+    height: 110,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#3b5bfd',
+    backgroundColor: '#ffcccc', // Fundal roșu pentru debug
+  },
   photoDate: { marginTop: 6, fontSize: 13, color: '#555', fontWeight: '500' },
   modalOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.93)', justifyContent: 'center', alignItems: 'center' },
   preview: { position: 'absolute', resizeMode: 'contain' },

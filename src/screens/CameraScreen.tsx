@@ -61,7 +61,7 @@ export default function CameraScreen({
       // 1️⃣ Capture
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
-        skipProcessing: true
+        skipProcessing: true,
       });
       const file_uri = photo.uri;
 
@@ -71,43 +71,43 @@ export default function CameraScreen({
       upload_data.append('photo', {
         uri: file_uri,
         name: `student${student_id}_${Date.now()}.jpg`,
-        type: 'image/jpeg'
+        type: 'image/jpeg',
       } as any);
-      
 
       const upload_res = await fetch(`${API_URL}/photos/upload`, {
         method: 'POST',
-        body: upload_data
+        body: upload_data,
       });
       if (!upload_res.ok) throw new Error(await upload_res.text());
       const { id: photo_id } = await upload_res.json();
 
-      // 3️⃣ Analyze + overlay
+      // 3️⃣ Analyze
       const analyze_data = new FormData();
       analyze_data.append('image', {
         uri: file_uri,
         name: 'photo.jpg',
-        type: 'image/jpeg'
+        type: 'image/jpeg',
       } as any);
       analyze_data.append('photo_id', String(photo_id));
 
       const analyze_res = await fetch(`${API_URL}/posture/${photo_id}/analyze`, {
         method: 'POST',
-        body: analyze_data
+        body: analyze_data,
       });
-      if (!analyze_res.ok) throw new Error(await analyze_res.text());
-      const analyze_json = await analyze_res.json();
+      const analyze_text = await analyze_res.text();
+      console.log('Analyze response:', analyze_text);
+      if (!analyze_res.ok) throw new Error(analyze_text);
+      const analyze_json = JSON.parse(analyze_text);
 
       // 4️⃣ Navigate to PhotoReview
       navigation.navigate('PhotoReview', {
-        uri:     photo.uri,
+        uri: photo.uri,
         overlay: analyze_json.overlay,
-        angles:  analyze_json.angles,
+        angles: analyze_json.angles,
         posture: analyze_json.posture,
         student_id,
-        name
+        name,
       });
-
     } catch (e: any) {
       console.error(e);
       Alert.alert('Eroare', e.message);

@@ -153,6 +153,14 @@ export default function GalleryImportScreen() {
       {results.length > 0 && (
         <View style={styles.results}>
           <Text style={styles.subtitle}>Rezultate:</Text>
+
+          {/* Disclaimer */}
+          <View style={styles.disclaimer}>
+            <Text style={styles.disclaimerText}>
+              Această analiză are rol orientativ și nu constituie un diagnostic medical. Deciziile terapeutice rămân responsabilitatea specialistului uman.
+            </Text>
+          </View>
+
           {results.map((r, i) => {
             if (r.angles && r.overlay) {
               return (
@@ -197,5 +205,16 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   thumb: { width: 100, height: 100, margin: 4, borderRadius: 4 },
   results: { marginTop: 20 },
-  subtitle: { fontWeight: 'bold', marginBottom: 8 }
+  subtitle: { fontWeight: 'bold', marginBottom: 8 },
+  disclaimer: {
+    backgroundColor: '#f8d7da', // Fundal roșu deschis
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 16,
+  },
+  disclaimerText: {
+    color: '#721c24', // Text roșu închis
+    fontSize: 14,
+    textAlign: 'center',
+  },
 });

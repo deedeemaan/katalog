@@ -97,17 +97,26 @@ export default function PhotoReviewScreen({
       </View>
 
       {result && result.angles && (
-        <View style={styles.results}>
-          <Text style={styles.resultText}>
-            Deficiență unghi umeri: {Number(result.angles.shoulderTilt).toFixed(2)}°
-          </Text>
-          <Text style={styles.resultText}>
-            Deficiență unghi șolduri: {Number(result.angles.hipTilt).toFixed(2)}°
-          </Text>
-          <Text style={styles.resultText}>
-            Deficiență unghi coloană: {Number(result.angles.spineTilt).toFixed(2)}°
-          </Text>
-        </View>
+        <>
+          <View style={styles.results}>
+            <Text style={styles.resultText}>
+              Deficiență unghi umeri: {Number(result.angles.shoulderTilt).toFixed(2)}°
+            </Text>
+            <Text style={styles.resultText}>
+              Deficiență unghi șolduri: {Number(result.angles.hipTilt).toFixed(2)}°
+            </Text>
+            <Text style={styles.resultText}>
+              Deficiență unghi coloană: {Number(result.angles.spineTilt).toFixed(2)}°
+            </Text>
+          </View>
+
+          {/* Disclaimer */}
+          <View style={styles.disclaimer}>
+            <Text style={styles.disclaimerText}>
+              Această analiză are rol orientativ și nu constituie un diagnostic medical. Deciziile terapeutice rămân responsabilitatea specialistului uman.
+            </Text>
+          </View>
+        </>
       )}
 
       <View style={styles.buttons}>
@@ -167,5 +176,14 @@ const styles = StyleSheet.create({
                         },
   retake:               { backgroundColor: '#555' },
   save:                 { backgroundColor: '#28A745' },
-  btnText:              { color: '#fff', fontWeight: '600' }
+  btnText:              { color: '#fff', fontWeight: '600' },
+  disclaimer:           {
+                          backgroundColor: '#222c',
+                          padding: 14,
+                          borderRadius: 10,
+                          marginHorizontal: 16,
+                          marginBottom: 16,
+                          alignItems: 'center',
+                        },
+  disclaimerText:       { color: '#ffcc00', fontSize: 14, textAlign: 'center' }
 });

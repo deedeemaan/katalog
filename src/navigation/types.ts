@@ -29,4 +29,5 @@ export type RootStackParamList = {
         posture: { id: number; photo_id: number; shoulder_tilt: string; hip_tilt: string; spine_tilt: string; created_at: string };
     };
     GalleryImport: { student_id: number };
+    AboutAI: undefined;
 };

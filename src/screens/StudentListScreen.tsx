@@ -182,13 +182,21 @@ export default function StudentListScreen() {
         }
       />
 
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => navigation.navigate('AddStudent')}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.addButtonText}>+ Adaugă Elev</Text>
-      </TouchableOpacity>
+      <View style={styles.footerButtons}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('AddStudent')}
+        >
+          <Text style={styles.addButtonText}>+ Adaugă Elev</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.aboutAIButton}
+          onPress={() => navigation.navigate('AboutAI')}
+        >
+          <Text style={styles.aboutAIButtonText}>Despre AI</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -263,10 +271,6 @@ const styles = StyleSheet.create({
   },
   icon:           { fontSize: 22 },
   addButton:      {
-    position: 'absolute',
-    bottom: 24,
-    left: 24,
-    right: 24,
     backgroundColor: '#3b5bfd',
     padding: 18,
     borderRadius: 14,
@@ -305,5 +309,33 @@ const styles = StyleSheet.create({
     color: '#222',
     backgroundColor: 'transparent',
     borderWidth: 0,
+  },
+  footerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  aboutAIButton: {
+    flex: 1,
+    marginLeft: 8,
+    padding: 18,
+    borderRadius: 14,
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  aboutAIButtonText: {
+    color: '#3b5bfd',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

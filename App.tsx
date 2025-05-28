@@ -22,6 +22,8 @@ import EditSessionScreen from './src/screens/EditSessionScreen';
 import PhotoReviewScreen from './src/screens/PhotoReviewScreen';
 import CameraScreen from './src/screens/CameraScreen';
 import GalleryImportScreen from './src/screens/GalleryImportScreen';
+import AboutAIScreen from './src/screens/AboutAIScreen';
+
 
 
 // 3) Creează navigatorul și atașează param-list-ul
@@ -85,6 +87,11 @@ export default function App() {
           name="GalleryImport"
           component={GalleryImportScreen}
           options={{ title: 'Importă Poze Test' }}
+        />
+        <Stack.Screen
+          name="AboutAI"
+          component={AboutAIScreen}
+          options={{ title: 'Despre AI' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
