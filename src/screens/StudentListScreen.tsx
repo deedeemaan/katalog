@@ -133,14 +133,21 @@ export default function StudentListScreen() {
               onPress={() =>
                 navigation.navigate('StudentDetail', {
                   id: item.id,
-                  name: item.name
+                  name: item.name,
                 })
               }
               activeOpacity={0.85}
             >
               <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.info}>Vârstă: <Text style={styles.infoValue}>{item.age}</Text></Text>
-              <Text style={styles.info}>Afecțiune: <Text style={styles.infoValue}>{item.condition}</Text></Text>
+              <Text style={styles.info}>
+                Vârstă: <Text style={styles.infoValue}>{item.age}</Text>
+              </Text>
+              <Text style={styles.info}>
+                Afecțiune: <Text style={styles.infoValue}>{item.condition}</Text>
+              </Text>
+              <Text style={styles.notes}>
+                Notițe: <Text style={styles.infoValue}>{item.notes}</Text>
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.actions}>
@@ -165,8 +172,8 @@ export default function StudentListScreen() {
                       {
                         text: 'Șterge',
                         style: 'destructive',
-                        onPress: () => handleDelete(item.id)
-                      }
+                        onPress: () => handleDelete(item.id),
+                      },
                     ]
                   )
                 }
@@ -240,6 +247,11 @@ const styles = StyleSheet.create({
   },
   name:           { fontSize: 21, fontWeight: 'bold', color: '#3b5bfd', marginBottom: 2 },
   info:           { color: '#888', fontSize: 15, marginBottom: 1 },
+  notes: {
+    color: '#555',
+    fontSize: 14,
+    marginTop: 4,
+  },
   infoValue:      { color: '#222', fontWeight: '500' },
   actions:        {
     flexDirection: 'row',

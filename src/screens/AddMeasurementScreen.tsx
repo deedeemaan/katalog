@@ -119,7 +119,7 @@ export default function AddMeasurementScreen() {
 
           <Text style={styles.label}>Perimetru toracic (cm)</Text>
           <View style={styles.inputRow}>
-            <Text style={styles.inputIcon}>💪</Text>
+            <Text style={styles.inputIcon}>🫁</Text> 
             <TextInput
               style={styles.input}
               value={chestCirc}
@@ -132,7 +132,7 @@ export default function AddMeasurementScreen() {
 
           <Text style={styles.label}>Perimetru abdominal (cm)</Text>
           <View style={styles.inputRow}>
-            <Text style={styles.inputIcon}>🏃‍♂️</Text>
+            <Text style={styles.inputIcon}>🧍</Text>
             <TextInput
               style={styles.input}
               value={abdominalCirc}

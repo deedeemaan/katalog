@@ -84,7 +84,7 @@ export default function EditSessionScreen() {
           maxLength={10}
         />
 
-        <Text style={styles.label}>Note</Text>
+        <Text style={styles.label}>Notițe</Text>
         <TextInput
           style={[styles.input, styles.multiline]}
           value={notes}

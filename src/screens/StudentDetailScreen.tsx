@@ -302,7 +302,7 @@ export default function StudentDetailScreen() {
                 ? item.session_type.charAt(0).toUpperCase() + item.session_type.slice(1)
                 : '—'}
             </Text>
-            <Text>Note: {item.notes}</Text>
+            <Text>Notițe: {item.notes}</Text>
             <View style={styles.rowBtns}>
               <TouchableOpacity
                 style={styles.smallBtn}
@@ -354,10 +354,33 @@ export default function StudentDetailScreen() {
                 />
                 {last && (
                   <View style={styles.anglesBox}>
-                    <Text>Umăr: {Number(last.shoulder_tilt).toFixed(1)}°</Text>
-                    <Text>Șold: {Number(last.hip_tilt).toFixed(1)}°</Text>
-                    <Text>Coloană: {Number(last.spine_tilt).toFixed(1)}°</Text>
-                    <Text>{new Date(last.created_at).toLocaleDateString()}</Text>
+                    <Text
+                      style={[
+                        styles.angleText,
+                        Number(last.shoulder_tilt) > 15 && { color: 'red' }, // Umăr
+                      ]}
+                    >
+                      Deficiență umăr: {Number(last.shoulder_tilt).toFixed(1)}°
+                    </Text>
+                    <Text
+                      style={[
+                        styles.angleText,
+                        Number(last.hip_tilt) > 15 && { color: 'red' }, // Șold
+                      ]}
+                    >
+                      Deficiență șold: {Number(last.hip_tilt).toFixed(1)}°
+                    </Text>
+                    <Text
+                      style={[
+                        styles.angleText,
+                        Number(last.spine_tilt) > 15 && { color: 'red' }, // Coloană
+                      ]}
+                    >
+                      Deficiență coloană: {Number(last.spine_tilt).toFixed(1)}°
+                    </Text>
+                    <Text style={styles.dateText}>
+                      {new Date(last.created_at).toLocaleDateString()}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -373,7 +396,7 @@ export default function StudentDetailScreen() {
           style={[styles.button, styles.cameraButton]}
           onPress={() => navigation.navigate('Camera', { student_id: id, name })}
         >
-          <Text style={styles.buttonText}>Open Camera</Text>
+          <Text style={styles.buttonText}>Deschide Camera</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.importButton]}
@@ -442,7 +465,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#3b5bfd',
-    backgroundColor: '#ffcccc', // Fundal roșu pentru debug
+    backgroundColor: '#ffffff', 
   },
   photoDate: { marginTop: 6, fontSize: 13, color: '#555', fontWeight: '500' },
   modalOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.93)', justifyContent: 'center', alignItems: 'center' },

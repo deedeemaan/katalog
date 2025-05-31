@@ -68,13 +68,12 @@ export default function GalleryImportScreen() {
         console.log('fileUri:', fileUri);
 
         const uploadData = new FormData();
-        uploadData.append('student_id', String(student_id)); 
+        uploadData.append('student_id', String(student_id));
         uploadData.append('photo', {
           uri: fileUri,
           name: 'photo.jpg',
           type: 'image/jpeg',
         } as any);
-        
 
         const uploadRes = await fetch(`${API_URL}/photos/upload`, {
           method: 'POST',
@@ -82,7 +81,8 @@ export default function GalleryImportScreen() {
         });
         if (!uploadRes.ok) {
           const errText = await uploadRes.text();
-          throw new Error('Upload error: ' + errText);
+          console.error('Upload error:', errText);
+          continue; // Nu adăuga poza dacă upload-ul eșuează
         }
         const uploadJson = await uploadRes.json();
         const photo_id = uploadJson.id;
@@ -90,7 +90,7 @@ export default function GalleryImportScreen() {
         // 2. Analyze photo
         const analyzeData = new FormData();
         analyzeData.append('image', {
-          uri: fileUri, // <-- folosește fileUri, nu uri!
+          uri: fileUri,
           name: 'photo.jpg',
           type: 'image/jpeg',
         } as any);
@@ -99,24 +99,42 @@ export default function GalleryImportScreen() {
         const analyzeRes = await fetch(`${API_URL}/posture/${photo_id}/analyze`, {
           method: 'POST',
           body: analyzeData,
-          // NU seta manual Content-Type!
-        }); // presupunând că backend ia imaginea din DB direct pe baza ID-ului
+        });
 
         if (!analyzeRes.ok) {
           const errText = await analyzeRes.text();
-          throw new Error('Analyze error: ' + errText);
+          console.error('Analyze error:', errText);
+          continue; // Nu adăuga poza dacă analiza eșuează
         }
         const analyzeJson = await analyzeRes.json();
         console.log('Analyze result:', analyzeJson);
 
+        // Verifică unghiurile
+        const { shoulderTilt, hipTilt, spineTilt } = analyzeJson.angles;
+        if (
+          Number(shoulderTilt) > 5 ||
+          Number(hipTilt) > 5 ||
+          Number(spineTilt) > 5
+        ) {
+          const photoNumber = photos.indexOf(uri) + 1; // Obține numărul pozei
+          Alert.alert(
+            'Atenție',
+            `Poza ${photoNumber} are unghiuri mari:\nUmăr: ${Number(shoulderTilt).toFixed(
+              2
+            )}°\nȘold: ${Number(hipTilt).toFixed(2)}°\nColoană: ${Number(
+              spineTilt
+            ).toFixed(2)}°`
+          );
+        }
+
         all.push({
           uri,
           angles: analyzeJson.angles,
-          overlay: analyzeJson.overlay_uri, // Folosește overlay_uri din răspuns
+          overlay: analyzeJson.overlay_uri,
           posture: analyzeJson.posture,
         });
       }
-      setResults(all);
+      setResults(all); // Salvează toate pozele, inclusiv cele cu unghiuri mari
     } catch (err: any) {
       console.error(err);
       Alert.alert('Eroare la analiză', err.message);
@@ -128,6 +146,9 @@ export default function GalleryImportScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#007AFF', marginBottom: 16 }}>
+        Importă și analizează poze
+      </Text>
       <TouchableOpacity style={styles.button} onPress={pickImages}>
         <Text style={styles.buttonText}>Importă poze din galerie</Text>
       </TouchableOpacity>
@@ -161,29 +182,32 @@ export default function GalleryImportScreen() {
             </Text>
           </View>
 
-          {results.map((r, i) => {
-            if (r.angles && r.overlay) {
-              return (
-                <View key={i} style={{ marginBottom: 16, alignItems: 'center' }}>
-                  <Text>Poza {i + 1}:</Text>
-                  <Image
-                    source={{ uri: r.overlay }} // Folosește direct overlay-ul
-                    style={{ width: 200, height: 200, marginVertical: 8 }}
-                    onError={() => console.error('Failed to load image:', r.overlay)}
-                  />
-                  <Text>Deficiență umăr: {Number(r.angles.shoulderTilt).toFixed(2)}°</Text>
-                  <Text>Deficiență șold: {Number(r.angles.hipTilt).toFixed(2)}°</Text>
-                  <Text>Deficiență coloană: {Number(r.angles.spineTilt).toFixed(2)}°</Text>
-                </View>
-              );
-            } else {
-              return (
-                <Text key={i} style={{ color: 'red' }}>
-                  Poza {i + 1}: Analiza a eșuat sau nu există unghiuri.
-                </Text>
-              );
-            }
-          })}
+          {/* ScrollView pentru rezultate */}
+          <ScrollView style={styles.resultsScroll}>
+            {results.map((r, i) => {
+              if (r.angles && r.overlay) {
+                return (
+                  <View key={i} style={{ marginBottom: 16, alignItems: 'center' }}>
+                    <Text>Poza {i + 1}:</Text>
+                    <Image
+                      source={{ uri: r.overlay }} // Folosește direct overlay-ul
+                      style={{ width: 200, height: 200, marginVertical: 8 }}
+                      onError={() => console.error('Failed to load image:', r.overlay)}
+                    />
+                    <Text>Deficiență umăr: {Number(r.angles.shoulderTilt).toFixed(2)}°</Text>
+                    <Text>Deficiență șold: {Number(r.angles.hipTilt).toFixed(2)}°</Text>
+                    <Text>Deficiență coloană: {Number(r.angles.spineTilt).toFixed(2)}°</Text>
+                  </View>
+                );
+              } else {
+                return (
+                  <Text key={i} style={{ color: 'red' }}>
+                    Poza {i + 1}: Analiza a eșuat sau nu există unghiuri.
+                  </Text>
+                );
+              }
+            })}
+          </ScrollView>
         </View>
       )}
     </View>
@@ -216,5 +240,13 @@ const styles = StyleSheet.create({
     color: '#721c24', // Text roșu închis
     fontSize: 14,
     textAlign: 'center',
+  },
+  resultsScroll: {
+    maxHeight: 300, // Limitează înălțimea secțiunii
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 6,
+    backgroundColor: '#f9f9f9',
   },
 });
