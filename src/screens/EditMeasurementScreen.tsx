@@ -16,15 +16,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
-type EditMeasurementRouteProp   = RouteProp<RootStackParamList, 'EditMeasurement'>;
-type EditMeasurementNavProp     = NativeStackNavigationProp<RootStackParamList, 'EditMeasurement'>;
+type EditMeasurementRouteProp = RouteProp<RootStackParamList, 'EditMeasurement'>;
+type EditMeasurementNavProp = NativeStackNavigationProp<RootStackParamList, 'EditMeasurement'>;
 
 export default function EditMeasurementScreen() {
-  const route      = useRoute<EditMeasurementRouteProp>();
+  const route = useRoute<EditMeasurementRouteProp>();
   const navigation = useNavigation<EditMeasurementNavProp>();
   const { measurement } = route.params;
 
-  // Destructure snake_case fields from measurement
   const {
     id,
     height,
@@ -35,16 +34,16 @@ export default function EditMeasurementScreen() {
     physical_disability
   } = measurement;
 
-  const [h, setH]         = useState(height.toString());
-  const [w, setW]         = useState(weight.toString());
-  const [hc, setHc]       = useState(head_circumference.toString());
-  const [cc, setCc]       = useState(chest_circumference.toString());
-  const [ac, setAc]       = useState(abdominal_circumference.toString());
-  const [pd, setPd]       = useState(physical_disability);
+  const [h, setH] = useState(height.toString());
+  const [w, setW] = useState(weight.toString());
+  const [hc, setHc] = useState(head_circumference?.toString() || '');
+  const [cc, setCc] = useState(chest_circumference?.toString() || '');
+  const [ac, setAc] = useState(abdominal_circumference?.toString() || '');
+  const [pd, setPd] = useState(physical_disability || '');
 
   const handleSave = async () => {
     if (!h || !w) {
-      Alert.alert('Eroare', 'Introduceți cel puțin înălțimea și greutatea.');
+      Alert.alert('Eroare', 'Introduceți înălțimea și greutatea.');
       return;
     }
     if (isNaN(Number(h)) || isNaN(Number(w))) {
@@ -57,9 +56,10 @@ export default function EditMeasurementScreen() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          student_id: measurement.student_id,
           height: Number(h),
           weight: Number(w),
-          head_circumference:  hc ? Number(hc) : null,
+          head_circumference: hc ? Number(hc) : null,
           chest_circumference: cc ? Number(cc) : null,
           abdominal_circumference: ac ? Number(ac) : null,
           physical_disability: pd || null
@@ -82,93 +82,172 @@ export default function EditMeasurementScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={styles.flex}
+      style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Editează Măsurătoare</Text>
+      <ScrollView contentContainerStyle={styles.outerContainer}>
+        <View style={styles.card}>
+          <Text style={styles.header}>Editează Măsurători</Text>
 
-        <Text style={styles.label}>Înălțime (cm)*</Text>
-        <TextInput
-          style={styles.input}
-          value={h}
-          onChangeText={setH}
-          keyboardType="numeric"
-        />
+          <Text style={styles.label}>Înalțime (cm)*</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputIcon}>📏</Text>
+            <TextInput
+              style={styles.input}
+              value={h}
+              onChangeText={setH}
+              keyboardType="numeric"
+              placeholder="ex: 120"
+              placeholderTextColor="#bbb"
+            />
+          </View>
 
-        <Text style={styles.label}>Greutate (kg)*</Text>
-        <TextInput
-          style={styles.input}
-          value={w}
-          onChangeText={setW}
-          keyboardType="numeric"
-        />
+          <Text style={styles.label}>Greutate (kg)*</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputIcon}>⚖️</Text>
+            <TextInput
+              style={styles.input}
+              value={w}
+              onChangeText={setW}
+              keyboardType="numeric"
+              placeholder="ex: 25"
+              placeholderTextColor="#bbb"
+            />
+          </View>
 
-        <Text style={styles.label}>Circumferință cap (cm)</Text>
-        <TextInput
-          style={styles.input}
-          value={hc}
-          onChangeText={setHc}
-          keyboardType="numeric"
-        />
+          <Text style={styles.label}>Perimetru cranian (cm)</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputIcon}>🧠</Text>
+            <TextInput
+              style={styles.input}
+              value={hc}
+              onChangeText={setHc}
+              keyboardType="numeric"
+              placeholder="ex: 50"
+              placeholderTextColor="#bbb"
+            />
+          </View>
 
-        <Text style={styles.label}>Circumferință piept (cm)</Text>
-        <TextInput
-          style={styles.input}
-          value={cc}
-          onChangeText={setCc}
-          keyboardType="numeric"
-        />
+          <Text style={styles.label}>Perimetru toracic (cm)</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputIcon}>🫁</Text>
+            <TextInput
+              style={styles.input}
+              value={cc}
+              onChangeText={setCc}
+              keyboardType="numeric"
+              placeholder="ex: 60"
+              placeholderTextColor="#bbb"
+            />
+          </View>
 
-        <Text style={styles.label}>Circumferință abdomen (cm)</Text>
-        <TextInput
-          style={styles.input}
-          value={ac}
-          onChangeText={setAc}
-          keyboardType="numeric"
-        />
+          <Text style={styles.label}>Perimetru abdominal (cm)</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputIcon}>🧍</Text>
+            <TextInput
+              style={styles.input}
+              value={ac}
+              onChangeText={setAc}
+              keyboardType="numeric"
+              placeholder="ex: 55"
+              placeholderTextColor="#bbb"
+            />
+          </View>
 
-        <Text style={styles.label}>Deficiență fizică</Text>
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          value={pd}
-          onChangeText={setPd}
-          multiline
-          numberOfLines={3}
-        />
+          <Text style={styles.label}>Deficiență fizică</Text>
+          <TextInput
+            style={[styles.input, styles.multiline]}
+            value={pd}
+            onChangeText={setPd}
+            multiline
+            numberOfLines={3}
+            placeholder="ex: scolioză, picior plat etc."
+            placeholderTextColor="#bbb"
+          />
 
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Salvează Modificările</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleSave}>
+            <Text style={styles.buttonText}>Salvează Modificările</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex:      { flex: 1, backgroundColor: '#fff' },
-  container: { padding: 16, backgroundColor: '#fff' },
-  header:    { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  label:     { marginTop: 12, fontWeight: '600' },
-  input:     {
+  container: { flex: 1, backgroundColor: '#f8f9fb' },
+  outerContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 18
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 22,
+    shadowColor: '#3b5bfd',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4
+  },
+  header: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 18,
+    color: '#3b5bfd',
+    letterSpacing: 1,
+    textAlign: 'center'
+  },
+  label: {
+    marginTop: 14,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 2
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2
+  },
+  inputIcon: {
+    fontSize: 18,
+    marginRight: 8,
+    color: '#3b5bfd',
+    width: 26,
+    textAlign: 'center'
+  },
+  input: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 4,
-    marginTop: 4
+    borderColor: '#e0e0e0',
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    fontSize: 16,
+    color: '#222',
+    marginTop: 4,
+    marginBottom: 2
   },
   multiline: {
     height: 80,
-    textAlignVertical: 'top'
+    textAlignVertical: 'top',
+    marginTop: 4
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 14,
-    borderRadius: 6,
-    marginTop: 24,
-    alignItems: 'center'
+    backgroundColor: '#3b5bfd',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 28,
+    alignItems: 'center',
+    shadowColor: '#3b5bfd',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4
   },
   buttonText: {
     color: '#fff',
-    fontWeight: '600'
+    fontWeight: 'bold',
+    fontSize: 17,
+    letterSpacing: 1
   }
 });

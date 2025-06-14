@@ -5,7 +5,7 @@ export type RootStackParamList = {
     StudentDetail: { id: number; name: string };
     AddMeasurement: { student_id: number };
     AddSession: { student_id: number };
-    EditSession: { session: { id: number; student_id: number; session_date: string; notes: string } };
+    EditSession: { session: { id: number; student_id: number; session_date: string; session_type: string; notes: string } };
     EditMeasurement: {
         measurement: {
             id: number;
@@ -25,8 +25,13 @@ export type RootStackParamList = {
         student_id: number;
         name: string;
         overlay: string; // base64
-        angles: { shoulder_tilt: number; hip_tilt: number; spine_tilt: number };
+        angles: {
+            shoulderTilt: number;
+            hipTilt: number;
+            spineTilt: number;
+        };
         posture: { id: number; photo_id: number; shoulder_tilt: string; hip_tilt: string; spine_tilt: string; created_at: string };
+        photo_id: number;
     };
     GalleryImport: { student_id: number };
     AboutAI: undefined;

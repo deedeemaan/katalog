@@ -27,7 +27,7 @@ export default function AddStudentScreen() {
       Alert.alert('Eroare', 'Completați cel puțin numele și vârsta elevului.');
       return;
     }
-    setLoading(true); // Pornește indicatorul de încărcare
+    setLoading(true); 
     try {
       await addStudent({
         name,
@@ -41,7 +41,7 @@ export default function AddStudentScreen() {
       Alert.alert('Eroare', 'Nu am putut adăuga elevul');
       console.error(err);
     } finally {
-      setLoading(false); // Oprește indicatorul de încărcare
+      setLoading(false); 
     }
   };
 

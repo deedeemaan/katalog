@@ -37,7 +37,6 @@ export default function GalleryImportScreen() {
     });
 
     if (!result.canceled) {
-      // expo SDK >= 48 uses result.assets
       const uris = result.assets.map(a => a.uri);
       setPhotos(uris);
     }
@@ -82,7 +81,7 @@ export default function GalleryImportScreen() {
         if (!uploadRes.ok) {
           const errText = await uploadRes.text();
           console.error('Upload error:', errText);
-          continue; // Nu adăuga poza dacă upload-ul eșuează
+          continue; 
         }
         const uploadJson = await uploadRes.json();
         const photo_id = uploadJson.id;
@@ -104,7 +103,7 @@ export default function GalleryImportScreen() {
         if (!analyzeRes.ok) {
           const errText = await analyzeRes.text();
           console.error('Analyze error:', errText);
-          continue; // Nu adăuga poza dacă analiza eșuează
+          continue; 
         }
         const analyzeJson = await analyzeRes.json();
         console.log('Analyze result:', analyzeJson);
@@ -112,11 +111,11 @@ export default function GalleryImportScreen() {
         // Verifică unghiurile
         const { shoulderTilt, hipTilt, spineTilt } = analyzeJson.angles;
         if (
-          Number(shoulderTilt) > 5 ||
-          Number(hipTilt) > 5 ||
-          Number(spineTilt) > 5
+          Number(shoulderTilt) > 15 ||
+          Number(hipTilt) > 15 ||
+          Number(spineTilt) > 15
         ) {
-          const photoNumber = photos.indexOf(uri) + 1; // Obține numărul pozei
+          const photoNumber = photos.indexOf(uri) + 1; 
           Alert.alert(
             'Atenție',
             `Poza ${photoNumber} are unghiuri mari:\nUmăr: ${Number(shoulderTilt).toFixed(
@@ -134,7 +133,7 @@ export default function GalleryImportScreen() {
           posture: analyzeJson.posture,
         });
       }
-      setResults(all); // Salvează toate pozele, inclusiv cele cu unghiuri mari
+      setResults(all); 
     } catch (err: any) {
       console.error(err);
       Alert.alert('Eroare la analiză', err.message);
@@ -182,7 +181,6 @@ export default function GalleryImportScreen() {
             </Text>
           </View>
 
-          {/* ScrollView pentru rezultate */}
           <ScrollView style={styles.resultsScroll}>
             {results.map((r, i) => {
               if (r.angles && r.overlay) {
@@ -190,7 +188,7 @@ export default function GalleryImportScreen() {
                   <View key={i} style={{ marginBottom: 16, alignItems: 'center' }}>
                     <Text>Poza {i + 1}:</Text>
                     <Image
-                      source={{ uri: r.overlay }} // Folosește direct overlay-ul
+                      source={{ uri: r.overlay }} 
                       style={{ width: 200, height: 200, marginVertical: 8 }}
                       onError={() => console.error('Failed to load image:', r.overlay)}
                     />
@@ -231,18 +229,18 @@ const styles = StyleSheet.create({
   results: { marginTop: 20 },
   subtitle: { fontWeight: 'bold', marginBottom: 8 },
   disclaimer: {
-    backgroundColor: '#f8d7da', // Fundal roșu deschis
+    backgroundColor: '#f8d7da', 
     padding: 10,
     borderRadius: 6,
     marginBottom: 16,
   },
   disclaimerText: {
-    color: '#721c24', // Text roșu închis
+    color: '#721c24', 
     fontSize: 14,
     textAlign: 'center',
   },
   resultsScroll: {
-    maxHeight: 300, // Limitează înălțimea secțiunii
+    maxHeight: 300, 
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#ddd',

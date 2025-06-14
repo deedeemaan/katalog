@@ -1,5 +1,5 @@
 // src/screens/PhotoReviewScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Dimensions,
+  Dimensions
 } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -18,9 +18,6 @@ import { API_URL } from '../services/api';
 type ReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
 type ReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
-
 export default function PhotoReviewScreen({
   route,
   navigation
@@ -28,162 +25,200 @@ export default function PhotoReviewScreen({
   route: ReviewRouteProp;
   navigation: ReviewNavProp;
 }) {
-  const { uri, student_id, name } = route.params;
-  const [saving, setSaving]       = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult]       = useState<any>(null);
+  const { uri, overlay, angles, posture, student_id, name, photo_id } = route.params;
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const analyze = async () => {
-      setAnalyzing(true);
-      try {
-        const data = new FormData();
-        data.append('image', {
-          uri,
-          name: `review_${Date.now()}.jpg`,
-          type: 'image/jpeg',
-        } as any);
-        const res = await fetch(`${API_URL}/angles`, {
-          method: 'POST',
-          body: data,
-        });
-        if (!res.ok) throw new Error('Eroare analiză');
-        const json = await res.json();
-        setResult(json);
-      } catch (err: any) {
-        setResult(null);
-        Alert.alert('Eroare', err.message);
-      } finally {
-        setAnalyzing(false);
-      }
-    };
-    analyze();
-  }, [uri]);
+  // 1. Dacă angles nu există deloc, afișăm un loader
+  if (!angles) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  // 2. Extragem valorile
+  const { shoulderTilt, hipTilt, spineTilt } = angles as {
+    shoulderTilt?: number;
+    hipTilt?: number;
+    spineTilt?: number;
+  };
+
+  if (
+    shoulderTilt === undefined ||
+    hipTilt === undefined ||
+    spineTilt === undefined
+  ) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Datele pentru unghiuri nu sunt complete.</Text>
+      </View>
+    );
+  }
 
   const savePhoto = async () => {
-    setSaving(true);
-    try {
-      const data = new FormData();
-      data.append('photo', {
-        uri,
-        name: `posture_${Date.now()}.jpg`,
-        type: 'image/jpeg',
-      } as any);
-      data.append('student_id', student_id.toString());
-
-      const res = await fetch(`${API_URL}/photos/upload`, {
-        method: 'POST',
-        body: data,
-      });
-      if (!res.ok) throw new Error('Failed to upload');
-
-      await res.json();
-      Alert.alert('Saved', 'Photo has been saved.');
-      navigation.pop(2);
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
-    } finally {
-      setSaving(false);
+    if (!overlay) {
+      Alert.alert('Eroare', 'Overlay-ul nu a fost generat.');
+      return;
     }
+      Alert.alert('Salvare', 'Analiza a fost înregistrată.'); 
+      navigation.popToTop();
   };
+
+  const renderAngle = (label: string, value?: number) => (
+    <Text style={styles.resultText}>
+      {label}: {value !== undefined ? `${value.toFixed(2)}°` : 'N/A'}
+    </Text>
+  );
+
+  const renderButton = (label: string, onPress: () => void, style: object, disabled = false) => (
+    <TouchableOpacity style={[styles.btn, style]} onPress={onPress} disabled={disabled}>
+      <Text style={styles.btnText}>{label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.previewContainer}>
+        {/* 1) poza originală */}
         <Image source={{ uri }} style={styles.preview} />
-        {analyzing && (
-          <ActivityIndicator style={styles.loaderOverlay} size="large" color="#fff" />
+        {/* 2) overlay-ul peste ea */}
+        <Image
+          source={{ uri: overlay }}
+          style={[styles.preview, { position: 'absolute', top: 0, left: 0 }]}
+        />
+        {saving && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.loadingText}>Salvare în curs…</Text>
+          </View>
         )}
       </View>
 
-      {result && result.angles && (
-        <>
-          <View style={styles.results}>
-            <Text style={styles.resultText}>
-              Deficiență unghi umeri: {Number(result.angles.shoulderTilt).toFixed(2)}°
-            </Text>
-            <Text style={styles.resultText}>
-              Deficiență unghi șolduri: {Number(result.angles.hipTilt).toFixed(2)}°
-            </Text>
-            <Text style={styles.resultText}>
-              Deficiență unghi coloană: {Number(result.angles.spineTilt).toFixed(2)}°
-            </Text>
-          </View>
+      {/* 3) afișăm unghiurile */}
+      <View style={styles.results}>
+        {renderAngle('Deficiență unghi umeri', shoulderTilt)}
+        {renderAngle('Deficiență unghi șolduri', hipTilt)}
+        {renderAngle('Deficiență unghi coloană', spineTilt)}
+      </View>
 
-          {/* Disclaimer */}
-          <View style={styles.disclaimer}>
-            <Text style={styles.disclaimerText}>
-              Această analiză are rol orientativ și nu constituie un diagnostic medical. Deciziile terapeutice rămân responsabilitatea specialistului uman.
-            </Text>
-          </View>
-        </>
-      )}
+      {/* 4) disclaimer */}
+      <View style={styles.disclaimer}>
+        <Text style={styles.disclaimerText}>
+          Această analiză are rol orientativ și nu constituie un diagnostic medical.
+          Deciziile terapeutice rămân responsabilitatea specialistului uman.
+        </Text>
+      </View>
 
       <View style={styles.buttons}>
-        <TouchableOpacity
-          style={[styles.btn, styles.retake]}
-          onPress={() => navigation.replace('Camera', { student_id, name })}
-        >
-          <Text style={styles.btnText}>Retake</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.btn, styles.save]}
-          onPress={savePhoto}
-          disabled={saving || analyzing || !result?.angles}
-        >
-          <Text style={styles.btnText}>
-            {saving ? 'Saving...' : analyzing ? 'Analizez...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
+        {renderButton('Retake', () => navigation.replace('Camera', { student_id, name }), styles.retake)}
+        {renderButton(saving ? 'Saving...' : 'Save', savePhoto, styles.save, saving)}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: '#000' },
-  previewContainer:     { flex: 1, position: 'relative' },
-  preview:              { flex: 1, width: '100%', height: '100%', resizeMode: 'cover', backgroundColor: '#111' },
-  loaderOverlay:        {
-                          position: 'absolute',
-                          top: 0, left: 0, right: 0, bottom: 0,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          zIndex: 20,
-                          backgroundColor: 'rgba(0,0,0,0.15)'
-                        },
-  results:              {
-                          backgroundColor: '#222c',
-                          padding: 14,
-                          borderRadius: 10,
-                          margin: 16,
-                          alignItems: 'center',
-                        },
-  resultText:           { color: '#fff', fontSize: 16, marginVertical: 2 },
-  buttons:              {
-                          flexDirection: 'row',
-                          justifyContent: 'space-around',
-                          padding: 16,
-                          backgroundColor: '#111'
-                        },
-  btn:                  {
-                          flex: 1,
-                          marginHorizontal: 8,
-                          padding: 14,
-                          borderRadius: 6,
-                          alignItems: 'center'
-                        },
-  retake:               { backgroundColor: '#555' },
-  save:                 { backgroundColor: '#28A745' },
-  btnText:              { color: '#fff', fontWeight: '600' },
-  disclaimer:           {
-                          backgroundColor: '#222c',
-                          padding: 14,
-                          borderRadius: 10,
-                          marginHorizontal: 16,
-                          marginBottom: 16,
-                          alignItems: 'center',
-                        },
-  disclaimerText:       { color: '#ffcc00', fontSize: 14, textAlign: 'center' }
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f9f9f9' 
+  },
+  previewContainer: { 
+    flex: 1, 
+    position: 'relative' 
+  },
+  preview: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain', 
+    backgroundColor: '#f0f0f0', 
+  },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.8)', 
+    zIndex: 20,
+  },
+  loadingText: {
+    color: '#333', 
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  results: {
+    backgroundColor: '#fff', 
+    padding: 16,
+    borderRadius: 12,
+    margin: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  resultText: { 
+    color: '#333', 
+    fontSize: 18, 
+    fontWeight: '600', 
+    marginVertical: 4 
+  },
+  disclaimer: {
+    backgroundColor: '#fffbea', 
+    padding: 14,
+    borderRadius: 10,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  disclaimerText: { 
+    color: '#856404', 
+    fontSize: 14, 
+    textAlign: 'center' 
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  btn: {
+    flex: 1,
+    marginHorizontal: 8,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e3e8ff', 
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  btnText: { 
+    color: '#3b5bfd', 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  },
+  retake: { 
+    backgroundColor: '#ffeaea' 
+  },
+  save: { 
+    backgroundColor: '#e3e8ff' 
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9', 
+  },
+  errorText: { 
+    color: '#d9534f', 
+    fontSize: 16 
+  },
 });

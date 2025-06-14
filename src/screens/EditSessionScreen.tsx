@@ -11,53 +11,53 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+const SESSION_TYPES = [
+  { label: 'Evaluare', value: 'evaluare' },
+  { label: 'Consolidare', value: 'consolidare' },
+  { label: 'Corecție', value: 'corectie' },
+];
+
 type EditSessionRouteProp = RouteProp<RootStackParamList, 'EditSession'>;
-type EditSessionNavProp   = NativeStackNavigationProp<RootStackParamList, 'EditSession'>;
+type EditSessionNavProp = NativeStackNavigationProp<RootStackParamList, 'EditSession'>;
 
 export default function EditSessionScreen() {
-  const route      = useRoute<EditSessionRouteProp>();
+  const route = useRoute<EditSessionRouteProp>();
   const navigation = useNavigation<EditSessionNavProp>();
   const { session } = route.params;
 
-  // Convert ISO → DD-MM-YYYY for display
-  const [session_date, setSessionDate] = useState(() => {
-    const d = new Date(session.session_date);
-    const dd = String(d.getDate()).padStart(2,'0');
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const yyyy = d.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  });
+  const [session_date, setSessionDate] = useState(new Date(session.session_date));
+  const [showPicker, setShowPicker] = useState(false);
   const [notes, setNotes] = useState(session.notes);
+  const [session_type, setSessionType] = useState(session.session_type);
 
   const handleSave = async () => {
-    // validate DD-MM-YYYY
-    const re = /^([0-2]\d|3[0-1])-(0\d|1[0-2])-(\d{4})$/;
-    if (!re.test(session_date)) {
-      Alert.alert('Format greșit', 'Data trebuie să fie ZZ-LL-AAAA');
-      return;
-    }
-
-    const [dd, mm, yyyy] = session_date.split('-');
-    const api_date = `${yyyy}-${mm}-${dd}`;
-
     try {
-      const res = await fetch(`${API_URL}/sessions/${session.id}`, {
+      // Ajustează data la fusul orar local
+      const localDate = new Date(session_date.getTime() - session_date.getTimezoneOffset() * 60000);
+      const apiDate = localDate.toISOString().slice(0, 10);
+
+      const response = await fetch(`${API_URL}/sessions/${session.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_date: api_date,
+          student_id: session.student_id,
+          session_date: apiDate,
+          session_type,
           notes
         })
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.message || 'Eroare la actualizare');
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText);
       }
+
       Alert.alert('Succes', 'Sesiunea a fost actualizată.');
       navigation.goBack();
     } catch (err: any) {
@@ -69,57 +69,192 @@ export default function EditSessionScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={styles.flex}
+      style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Editează Sesiune</Text>
+      <ScrollView contentContainerStyle={styles.outerContainer}>
+        <View style={styles.card}>
+          <Text style={styles.header}>Editează Sesiune</Text>
 
-        <Text style={styles.label}>Data (ZZ-LL-AAAA)*</Text>
-        <TextInput
-          style={styles.input}
-          value={session_date}
-          onChangeText={setSessionDate}
-          placeholder="ex: 05-05-2025"
-          keyboardType="default"
-          maxLength={10}
-        />
+          <Text style={styles.label}>Data*</Text>
+          <TouchableOpacity
+            style={styles.inputRow}
+            onPress={() => setShowPicker(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.inputIcon}>📅</Text>
+            <Text style={styles.inputText}>
+              {session_date.toLocaleDateString()}
+            </Text>
+          </TouchableOpacity>
+          {showPicker && (
+            <DateTimePicker
+              value={session_date}
+              mode="date"
+              display="default"
+              onChange={(_, date) => {
+                setShowPicker(false);
+                if (date) setSessionDate(date);
+              }}
+              maximumDate={new Date()}
+            />
+          )}
 
-        <Text style={styles.label}>Notițe</Text>
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          numberOfLines={4}
-        />
+          <Text style={styles.label}>Tip sesiune*</Text>
+          <View style={styles.sessionTypeRow}>
+            {SESSION_TYPES.map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[
+                  styles.sessionTypeBtn,
+                  session_type === opt.value && styles.sessionTypeBtnActive
+                ]}
+                onPress={() => setSessionType(opt.value)}
+              >
+                <Text
+                  style={[
+                    styles.sessionTypeText,
+                    session_type === opt.value && styles.sessionTypeTextActive
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Salvează Modificările</Text>
-        </TouchableOpacity>
+          <Text style={styles.label}>Note</Text>
+          <TextInput
+            style={[styles.input, styles.multiline]}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            numberOfLines={4}
+            placeholder="ex: observații, progres, etc."
+            placeholderTextColor="#bbb"
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleSave}>
+            <Text style={styles.buttonText}>Salvează Modificările</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex:      { flex: 1, backgroundColor: '#fff' },
-  container: { padding: 16, backgroundColor: '#fff' },
-  header:    { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  label:     { marginTop: 12, fontWeight: '600' },
-  input:     {
+  container: { flex: 1, backgroundColor: '#f8f9fb' },
+  outerContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 18,
+    backgroundColor: '#f8f9fb',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 22,
+    shadowColor: '#3b5bfd',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  header: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 18,
+    color: '#3b5bfd',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  label: {
+    marginTop: 14,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 4,
-    marginTop: 4
+    borderColor: '#e0e0e0',
+    padding: 12,
+    marginTop: 4,
+    marginBottom: 2,
   },
-  multiline: { height: 100, textAlignVertical: 'top' },
-  button:    {
-    backgroundColor: '#007AFF',
-    padding: 14,
-    borderRadius: 6,
-    marginTop: 24,
-    alignItems: 'center'
+  inputIcon: {
+    fontSize: 18,
+    marginRight: 8,
+    color: '#3b5bfd',
+    width: 26,
+    textAlign: 'center',
   },
-  buttonText:{ color: '#fff', fontWeight: '600' }
+  inputText: {
+    fontSize: 16,
+    color: '#222',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    fontSize: 16,
+    color: '#222',
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  multiline: {
+    height: 80,
+    textAlignVertical: 'top',
+    marginTop: 4,
+  },
+  sessionTypeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  sessionTypeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginHorizontal: 2,
+  },
+  sessionTypeBtnActive: {
+    backgroundColor: '#3b5bfd',
+    borderColor: '#3b5bfd',
+  },
+  sessionTypeText: {
+    color: '#222',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  sessionTypeTextActive: {
+    color: '#fff',
+  },
+  button: {
+    backgroundColor: '#3b5bfd',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 28,
+    alignItems: 'center',
+    shadowColor: '#3b5bfd',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 17,
+    letterSpacing: 1,
+  },
 });

@@ -72,7 +72,6 @@ export default function StudentDetailScreen() {
   const navigation = useNavigation<DetailNavProp>();
   const { id, name } = route.params;
 
-  // Schimbă titlul header-ului
   useLayoutEffect(() => {
     navigation.setOptions({ title: `Detalii elev` });
   }, [navigation, name]);
@@ -85,7 +84,6 @@ export default function StudentDetailScreen() {
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
 
-  // Ensure we return a fully qualified URI
   const getPhotoUri = (uri: string) =>
     uri.startsWith('http') || uri.startsWith('file://')
       ? uri
@@ -93,7 +91,6 @@ export default function StudentDetailScreen() {
 
   const getFullUri = (relativePath: string) => `${API_URL}${relativePath}`;
 
-  // Fetch all data; silent=true skips the full-screen spinner
   const fetchDetails = useCallback(
     async (opts: { silent: boolean }) => {
       if (!opts.silent) setInitialLoading(true);
@@ -109,11 +106,10 @@ export default function StudentDetailScreen() {
         setSessions(await sRes.json());
 
         const photosList: Photo[] = await pRes.json();
-        // pentru fiecare poză, aducem history
         const photosWithHistory = await Promise.all(
           photosList.map(async p => {
             const hRes = await fetch(`${API_URL}/posture/${p.id}/history`);
-            const { history } = await hRes.json(); // istoricul include overlay_uri
+            const { history } = await hRes.json(); 
             return { ...p, history };
           })
         );
@@ -130,20 +126,17 @@ export default function StudentDetailScreen() {
   );
 
 
-  // On screen focus: first time full spinner, then silent refresh
   useFocusEffect(
     React.useCallback(() => {
       fetchDetails({ silent: !initialLoading });
     }, [fetchDetails, initialLoading])
   );
 
-  // Pull-to-refresh handler
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchDetails({ silent: true });
   }, [fetchDetails]);
 
-  // Confirmation & deletion helpers
   const confirmDeleteMeasurement = (mid: number) => {
     Alert.alert('Confirm Delete', 'Șterge această măsurătoare?', [
       { text: 'Anulează', style: 'cancel' },
@@ -306,7 +299,7 @@ export default function StudentDetailScreen() {
             <View style={styles.rowBtns}>
               <TouchableOpacity
                 style={styles.smallBtn}
-                onPress={() => navigation.navigate('EditSession', { session: item })}
+                onPress={() => navigation.navigate('EditSession', { session: { ...item, session_type: item.session_type ?? '' } })}
               >
                 <Text style={styles.smallBtnText}>✏️</Text>
               </TouchableOpacity>
@@ -334,15 +327,15 @@ export default function StudentDetailScreen() {
         horizontal
         keyExtractor={p => p.id.toString()}
         renderItem={({ item }) => {
-          const last = item.history?.[0]; // cea mai recentă analiză
+          const last = item.history?.[0]; 
           const uri = last?.overlay_uri ? getFullUri(last.overlay_uri) : undefined;
 
           return (
             <TouchableOpacity
               onPress={() => {
                 if (uri) {
-                  setSelectedUri(uri); // setează URI-ul imaginii selectate
-                  setSelectedPhotoId(item.id); // setează ID-ul imaginii selectate
+                  setSelectedUri(uri); 
+                  setSelectedPhotoId(item.id); 
                 }
               }}
             >
@@ -357,7 +350,7 @@ export default function StudentDetailScreen() {
                     <Text
                       style={[
                         styles.angleText,
-                        Number(last.shoulder_tilt) > 15 && { color: 'red' }, // Umăr
+                        Number(last.shoulder_tilt) > 15 && { color: 'red' }, 
                       ]}
                     >
                       Deficiență umăr: {Number(last.shoulder_tilt).toFixed(1)}°
@@ -365,7 +358,7 @@ export default function StudentDetailScreen() {
                     <Text
                       style={[
                         styles.angleText,
-                        Number(last.hip_tilt) > 15 && { color: 'red' }, // Șold
+                        Number(last.hip_tilt) > 15 && { color: 'red' },
                       ]}
                     >
                       Deficiență șold: {Number(last.hip_tilt).toFixed(1)}°
@@ -373,7 +366,7 @@ export default function StudentDetailScreen() {
                     <Text
                       style={[
                         styles.angleText,
-                        Number(last.spine_tilt) > 15 && { color: 'red' }, // Coloană
+                        Number(last.spine_tilt) > 15 && { color: 'red' }, 
                       ]}
                     >
                       Deficiență coloană: {Number(last.spine_tilt).toFixed(1)}°

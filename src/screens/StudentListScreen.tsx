@@ -55,13 +55,12 @@ export default function StudentListScreen() {
     }
   }, []);
 
-  // Silent refresh la fiecare focus (fără UI shift)
   const silentRefresh = useCallback(async () => {
     try {
       const data = await getStudents();
       setStudents(data);
     } catch {
-      // ignorăm eroarea
+      // ignorăm eroarea la reîncărcare silențioasă
     }
   }, []);
 
