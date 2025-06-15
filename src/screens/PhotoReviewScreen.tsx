@@ -15,9 +15,11 @@ import type { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type ReviewRouteProp = RouteProp<RootStackParamList, 'PhotoReview'>;
-type ReviewNavProp   = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
+type ReviewNavProp = NativeStackNavigationProp<RootStackParamList, 'PhotoReview'>;
 
+// Componenta principală pentru revizuirea și salvarea analizei imaginilor
 export default function PhotoReviewScreen({
   route,
   navigation
@@ -25,10 +27,10 @@ export default function PhotoReviewScreen({
   route: ReviewRouteProp;
   navigation: ReviewNavProp;
 }) {
-  const { uri, overlay, angles, posture, student_id, name, photo_id } = route.params;
-  const [saving, setSaving] = useState(false);
+  const { uri, overlay, angles, posture, student_id, name, photo_id } = route.params; // Parametrii imaginii și analizei
+  const [saving, setSaving] = useState(false); // Indicator pentru procesul de salvare
 
-  // 1. Dacă angles nu există deloc, afișăm un loader
+  // 1. Dacă unghiurile nu sunt disponibile, afișăm un loader
   if (!angles) {
     return (
       <View style={styles.center}>
@@ -37,13 +39,14 @@ export default function PhotoReviewScreen({
     );
   }
 
-  // 2. Extragem valorile
+  // 2. Extragem valorile unghiurilor
   const { shoulderTilt, hipTilt, spineTilt } = angles as {
     shoulderTilt?: number;
     hipTilt?: number;
     spineTilt?: number;
   };
 
+  // Verificăm dacă datele unghiurilor sunt incomplete
   if (
     shoulderTilt === undefined ||
     hipTilt === undefined ||
@@ -56,33 +59,60 @@ export default function PhotoReviewScreen({
     );
   }
 
+  // Funcția pentru salvarea analizei imaginii
   const savePhoto = async () => {
     if (!overlay) {
       Alert.alert('Eroare', 'Overlay-ul nu a fost generat.');
       return;
     }
-      Alert.alert('Salvare', 'Analiza a fost înregistrată.'); 
-      navigation.popToTop();
+    try {
+      setSaving(true); // Activează indicatorul de salvare
+      // Trimiterea datelor analizei către API
+      const response = await fetch(`${API_URL}/posture/${photo_id}/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id,
+          posture,
+          angles,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Eroare la salvarea analizei.');
+      }
+
+      Alert.alert('Succes', 'Analiza a fost salvată.');
+      navigation.popToTop(); // Revenire la ecranul principal
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert('Eroare', err.message || 'Nu s-a putut salva analiza.');
+    } finally {
+      setSaving(false); // Dezactivează indicatorul de salvare
+    }
   };
 
+  // Funcția pentru afișarea unghiurilor
   const renderAngle = (label: string, value?: number) => (
     <Text style={styles.resultText}>
       {label}: {value !== undefined ? `${value.toFixed(2)}°` : 'N/A'}
     </Text>
   );
 
+  // Funcția pentru afișarea butoanelor
   const renderButton = (label: string, onPress: () => void, style: object, disabled = false) => (
     <TouchableOpacity style={[styles.btn, style]} onPress={onPress} disabled={disabled}>
       <Text style={styles.btnText}>{label}</Text>
     </TouchableOpacity>
   );
 
+  // Returnarea UI-ului pentru revizuirea imaginii
   return (
     <View style={styles.container}>
       <View style={styles.previewContainer}>
-        {/* 1) poza originală */}
+        {/* Poza originală */}
         <Image source={{ uri }} style={styles.preview} />
-        {/* 2) overlay-ul peste ea */}
+        {/* Overlay-ul peste poza */}
         <Image
           source={{ uri: overlay }}
           style={[styles.preview, { position: 'absolute', top: 0, left: 0 }]}
@@ -95,14 +125,14 @@ export default function PhotoReviewScreen({
         )}
       </View>
 
-      {/* 3) afișăm unghiurile */}
+      {/* Afișarea unghiurilor */}
       <View style={styles.results}>
         {renderAngle('Deficiență unghi umeri', shoulderTilt)}
         {renderAngle('Deficiență unghi șolduri', hipTilt)}
         {renderAngle('Deficiență unghi coloană', spineTilt)}
       </View>
 
-      {/* 4) disclaimer */}
+      {/* Disclaimer */}
       <View style={styles.disclaimer}>
         <Text style={styles.disclaimerText}>
           Această analiză are rol orientativ și nu constituie un diagnostic medical.
@@ -110,6 +140,7 @@ export default function PhotoReviewScreen({
         </Text>
       </View>
 
+      {/* Butoane pentru acțiuni */}
       <View style={styles.buttons}>
         {renderButton('Retake', () => navigation.replace('Camera', { student_id, name }), styles.retake)}
         {renderButton(saving ? 'Saving...' : 'Save', savePhoto, styles.save, saving)}

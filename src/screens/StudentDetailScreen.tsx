@@ -23,9 +23,11 @@ import type { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type DetailRouteProp = RouteProp<RootStackParamList, 'StudentDetail'>;
 type DetailNavProp = NativeStackNavigationProp<RootStackParamList, 'StudentDetail'>;
 
+// Tipurile pentru măsurători, sesiuni și poze
 type Measurement = {
   id: number;
   student_id: number;
@@ -65,8 +67,7 @@ type Photo = {
   history?: PostureEntry[];
 };
 
-
-
+// Componenta principală pentru afișarea detaliilor unui elev
 export default function StudentDetailScreen() {
   const route = useRoute<DetailRouteProp>();
   const navigation = useNavigation<DetailNavProp>();
@@ -91,6 +92,7 @@ export default function StudentDetailScreen() {
 
   const getFullUri = (relativePath: string) => `${API_URL}${relativePath}`;
 
+  // Funcția pentru obținerea detaliilor elevului
   const fetchDetails = useCallback(
     async (opts: { silent: boolean }) => {
       if (!opts.silent) setInitialLoading(true);
@@ -132,6 +134,7 @@ export default function StudentDetailScreen() {
     }, [fetchDetails, initialLoading])
   );
 
+  // Funcția pentru reîmprospătarea datelor
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchDetails({ silent: true });
@@ -180,47 +183,6 @@ export default function StudentDetailScreen() {
     ]);
   };
 
-  const uploadPhoto = async (photo: any, student_id: number) => {
-    const data = new FormData();
-    data.append('photo', {
-      uri: photo.uri,
-      name: `posture_${Date.now()}.jpg`,
-      type: 'image/jpeg',
-    } as any);
-    data.append('student_id', String(student_id));
-
-    try {
-      // 1. Upload photo
-      const uploadRes = await fetch(`${API_URL}/photos/upload`, {
-        method: 'POST',
-        body: data,
-      });
-      const uploadData = await uploadRes.json();
-      const photo_id = uploadData.id;
-
-      // 2. Analyze photo
-      if (photo_id) {
-        const analyzeData = new FormData();
-        analyzeData.append('image', {
-          uri: photo.uri,
-          name: `posture_${Date.now()}.jpg`,
-          type: 'image/jpeg',
-        } as any);
-
-        const analyzeRes = await fetch(`${API_URL}/posture/${photo_id}/analyze`, {
-          method: 'POST',
-          body: analyzeData,
-        });
-        const analyzeDataJson = await analyzeRes.json();
-        console.log('Analyze result:', analyzeDataJson);
-      }
-
-      fetchDetails({ silent: true });
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
-    }
-  };
-
   if (initialLoading) {
     return (
       <View style={styles.loaderContainer}>
@@ -230,7 +192,8 @@ export default function StudentDetailScreen() {
   }
 
   const { width, height } = Dimensions.get('window');
-
+  
+  // Returnarea UI-ului pentru afișarea detaliilor elevului
   return (
     <ScrollView
       style={styles.container}

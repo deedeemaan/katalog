@@ -2,6 +2,7 @@ import { API_HOST } from '@env';
 
 export const API_URL = `http://${API_HOST}:3000`;
 
+// Funcția pentru obținerea listei de studenți
 export async function getStudents() {
   const res = await fetch(`${API_URL}/students`);
   if (!res.ok) {
@@ -11,7 +12,7 @@ export async function getStudents() {
   return res.json();
 }
 
-// aici specificăm tipul datelor
+// Tipurile de date pentru un student
 type StudentData = {
   name: string;
   age: number;

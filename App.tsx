@@ -1,10 +1,9 @@
 // App.tsx
-import 'react-native-gesture-handler';  // trebuie primul
+import 'react-native-gesture-handler';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
-  NativeStackNavigationProp
 } from '@react-navigation/native-stack';
 
 // 1) Importă-ți tipurile de rute
@@ -23,7 +22,6 @@ import PhotoReviewScreen from './src/screens/PhotoReviewScreen';
 import CameraScreen from './src/screens/CameraScreen';
 import GalleryImportScreen from './src/screens/GalleryImportScreen';
 import AboutAIScreen from './src/screens/AboutAIScreen';
-
 
 
 // 3) Creează navigatorul și atașează param-list-ul

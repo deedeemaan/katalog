@@ -14,6 +14,7 @@ import {
 import { addStudent } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
 
+// Componenta principală pentru adăugarea unui nou elev
 export default function AddStudentScreen() {
   const navigation = useNavigation();
   const [name, setName] = useState('');
@@ -22,6 +23,7 @@ export default function AddStudentScreen() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Funcția pentru trimiterea datelor către API
   const handleSubmit = async () => {
     if (!name || !age) {
       Alert.alert('Eroare', 'Completați cel puțin numele și vârsta elevului.');
@@ -45,6 +47,7 @@ export default function AddStudentScreen() {
     }
   };
 
+  // Returnarea UI-ului pentru adăugarea elevului
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}

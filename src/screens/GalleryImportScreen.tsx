@@ -15,6 +15,7 @@ import { useRoute } from '@react-navigation/native';
 
 import { API_URL } from '../services/api';
 
+// Componenta principală pentru importarea și analiza imaginilor din galerie
 export default function GalleryImportScreen() {
   const route = useRoute<any>();
   const { student_id } = route.params;
@@ -23,6 +24,7 @@ export default function GalleryImportScreen() {
   const [results, setResults] = useState<any[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
 
+  // Funcția pentru selectarea imaginilor din galerie
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -42,6 +44,7 @@ export default function GalleryImportScreen() {
     }
   };
 
+  // Funcția pentru analiza imaginilor selectate
   const analyzePhotos = async () => {
     if (photos.length === 0) {
       Alert.alert('Oops', 'Nici o poză selectată.');
@@ -142,7 +145,7 @@ export default function GalleryImportScreen() {
     }
   };
 
-
+  // Returnarea UI-ului pentru importarea și analiza imaginilor
   return (
     <View style={styles.container}>
       <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#007AFF', marginBottom: 16 }}>

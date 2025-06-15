@@ -17,9 +17,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type EditRouteProp = RouteProp<RootStackParamList, 'EditStudent'>;
 type EditNavProp = NativeStackNavigationProp<RootStackParamList, 'EditStudent'>;
 
+// Componenta principală pentru editarea unui elev
 export default function EditStudentScreen() {
   const route = useRoute<EditRouteProp>();
   const navigation = useNavigation<EditNavProp>();
@@ -31,6 +33,7 @@ export default function EditStudentScreen() {
   const [notes, setNotes] = useState(student.notes);
   const [loading, setLoading] = useState(false);
 
+  // Funcția pentru salvarea modificărilor
   const handleSave = async () => {
     if (!name || !age) {
       Alert.alert('Eroare', 'Numele și vârsta sunt obligatorii.');
@@ -60,6 +63,7 @@ export default function EditStudentScreen() {
     }
   };
 
+  // Returnarea UI-ului pentru editarea elevului
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}

@@ -17,15 +17,18 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Lista tipurilor de sesiuni disponibile
 const SESSION_TYPES = [
   { label: 'Evaluare', value: 'evaluare' },
   { label: 'Consolidare', value: 'consolidare' },
   { label: 'Corecție', value: 'corectie' },
 ];
 
+// Tipurile pentru navigație și parametrii rutei
 type EditSessionRouteProp = RouteProp<RootStackParamList, 'EditSession'>;
 type EditSessionNavProp = NativeStackNavigationProp<RootStackParamList, 'EditSession'>;
 
+// Componenta principală pentru editarea unei sesiuni
 export default function EditSessionScreen() {
   const route = useRoute<EditSessionRouteProp>();
   const navigation = useNavigation<EditSessionNavProp>();
@@ -36,6 +39,7 @@ export default function EditSessionScreen() {
   const [notes, setNotes] = useState(session.notes);
   const [session_type, setSessionType] = useState(session.session_type);
 
+  // Funcția pentru salvarea modificărilor
   const handleSave = async () => {
     try {
       // Ajustează data la fusul orar local
@@ -66,6 +70,7 @@ export default function EditSessionScreen() {
     }
   };
 
+  // Returnarea UI-ului pentru editarea sesiunii
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}

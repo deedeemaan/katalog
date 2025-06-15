@@ -29,6 +29,7 @@ type Student = {
   notes: string;
 };
 
+// Componenta principală pentru afișarea listei de studenți
 export default function StudentListScreen() {
   const navigation = useNavigation<NavProp>();
   const [students, setStudents]     = useState<Student[]>([]);
@@ -36,6 +37,7 @@ export default function StudentListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch]         = useState('');
 
+  // Filtrarea studenților pe baza căutării
   const filteredStudents = students.filter(
     s =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -55,6 +57,7 @@ export default function StudentListScreen() {
     }
   }, []);
 
+  // Funcția pentru reîmprospătarea silențioasă a listei de studenți
   const silentRefresh = useCallback(async () => {
     try {
       const data = await getStudents();
@@ -96,6 +99,7 @@ export default function StudentListScreen() {
     }
   };
 
+  // Afișarea unui loader în timpul încărcării inițiale
   if (initialLoading) {
     return (
       <View style={styles.center}>
@@ -104,6 +108,7 @@ export default function StudentListScreen() {
     );
   }
 
+  // Returnarea UI-ului pentru lista de studenți
   return (
     <View style={styles.container}>
       <View style={styles.searchBarWrapper}>

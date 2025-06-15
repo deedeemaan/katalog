@@ -16,22 +16,27 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type MeasurementRouteProp = RouteProp<RootStackParamList, 'AddMeasurement'>;
 type MeasurementNavProp = NativeStackNavigationProp<RootStackParamList, 'AddMeasurement'>;
 
+// Componenta principală pentru adăugarea măsurătorilor unui student
 export default function AddMeasurementScreen() {
   const route = useRoute<MeasurementRouteProp>();
   const navigation = useNavigation<MeasurementNavProp>();
   const { student_id } = route.params;
 
+    // State-uri pentru câmpurile de input
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [headCirc, setHeadCirc] = useState('');
   const [chestCirc, setChestCirc] = useState('');
   const [abdominalCirc, setAbdominalCirc] = useState('');
   const [physicalDisability, setPhysicalDisability] = useState('');
-
+ 
+  // Funcția pentru salvarea măsurătorilor
   const handleSave = async () => {
+    // Validare pentru câmpurile obligatorii
     if (!height || !weight) {
       Alert.alert('Eroare', 'Introduceți înălțimea și greutatea.');
       return;
@@ -42,6 +47,7 @@ export default function AddMeasurementScreen() {
     }
 
     try {
+      // Trimiterea datelor către API
       const response = await fetch(`${API_URL}/measurements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +61,7 @@ export default function AddMeasurementScreen() {
           physical_disability: physicalDisability || null
         })
       });
-
+      // Verificarea răspunsului API
       if (!response.ok) {
         const err = await response.json();
         throw new Error(err.message || 'Eroare la salvare');
@@ -69,6 +75,7 @@ export default function AddMeasurementScreen() {
     }
   };
 
+  // Returnarea UI-ului pentru adăugarea măsurătorilor
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
@@ -90,7 +97,7 @@ export default function AddMeasurementScreen() {
               placeholderTextColor="#bbb"
             />
           </View>
-
+          
           <Text style={styles.label}>Greutate (kg)*</Text>
           <View style={styles.inputRow}>
             <Text style={styles.inputIcon}>⚖️</Text>
@@ -154,6 +161,7 @@ export default function AddMeasurementScreen() {
             placeholderTextColor="#bbb"
           />
 
+          {/* Buton pentru salvare */}
           <TouchableOpacity style={styles.button} onPress={handleSave}>
             <Text style={styles.buttonText}>Salvează Măsurători</Text>
           </TouchableOpacity>

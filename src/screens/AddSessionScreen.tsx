@@ -17,25 +17,30 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type SessionRouteProp = RouteProp<RootStackParamList, 'AddSession'>;
 type SessionNavProp   = NativeStackNavigationProp<RootStackParamList, 'AddSession'>;
 
+// Lista tipurilor de sesiuni disponibile
 const SESSION_TYPES = [
   { label: 'Evaluare', value: 'evaluare' },
   { label: 'Consolidare', value: 'consolidare' },
   { label: 'Corecție', value: 'corectie' },
 ];
 
+// Componenta principală pentru adăugarea unei sesiuni
 export default function AddSessionScreen() {
   const route      = useRoute<SessionRouteProp>();
   const navigation = useNavigation<SessionNavProp>();
   const { student_id } = route.params;
 
+  // State-uri pentru câmpurile de input
   const [session_date, setSessionDate] = useState<Date>(new Date());
   const [showPicker, setShowPicker]   = useState(false);
   const [notes, setNotes]             = useState('');
   const [session_type, setSessionType] = useState(SESSION_TYPES[0].value);
 
+  // Funcția pentru salvarea sesiunii
   const handleSave = async () => {
     try {
       const apiDate = session_date.toISOString().slice(0, 10);
@@ -49,6 +54,8 @@ export default function AddSessionScreen() {
           session_type
         })
       });
+
+      // Verificarea răspunsului API      
       if (!response.ok) {
         const errText = await response.text();
         throw new Error(errText);
@@ -61,6 +68,7 @@ export default function AddSessionScreen() {
     }
   };
 
+  // Returnarea UI-ului pentru adăugarea sesiunii
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}

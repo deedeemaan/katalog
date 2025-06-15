@@ -16,9 +16,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type EditMeasurementRouteProp = RouteProp<RootStackParamList, 'EditMeasurement'>;
 type EditMeasurementNavProp = NativeStackNavigationProp<RootStackParamList, 'EditMeasurement'>;
 
+// Componenta principală pentru editarea măsurătorilor unui student
 export default function EditMeasurementScreen() {
   const route = useRoute<EditMeasurementRouteProp>();
   const navigation = useNavigation<EditMeasurementNavProp>();
@@ -40,7 +42,8 @@ export default function EditMeasurementScreen() {
   const [cc, setCc] = useState(chest_circumference?.toString() || '');
   const [ac, setAc] = useState(abdominal_circumference?.toString() || '');
   const [pd, setPd] = useState(physical_disability || '');
-
+  
+  // Funcția pentru salvarea modificărilor
   const handleSave = async () => {
     if (!h || !w) {
       Alert.alert('Eroare', 'Introduceți înălțimea și greutatea.');
@@ -78,7 +81,8 @@ export default function EditMeasurementScreen() {
       Alert.alert('Eroare', err.message || 'Nu s-a putut actualiza măsurătoarea.');
     }
   };
-
+  
+  // Returnarea UI-ului pentru editarea măsurătorilor
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}

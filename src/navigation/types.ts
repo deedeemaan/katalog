@@ -1,3 +1,7 @@
+// Acest fișier definește tipurile de parametri pentru navigația aplicației.
+// Fiecare ecran din aplicație are un set de parametri specifici, organizați în RootStackParamList.
+// Aceste tipuri sunt utilizate pentru a asigura consistența și siguranța în timpul navigării între ecrane.
+
 export type RootStackParamList = {
     StudentList: undefined;
     AddStudent: undefined;
@@ -24,7 +28,7 @@ export type RootStackParamList = {
         uri: string;
         student_id: number;
         name: string;
-        overlay: string; // base64
+        overlay: string; 
         angles: {
             shoulderTilt: number;
             hipTilt: number;

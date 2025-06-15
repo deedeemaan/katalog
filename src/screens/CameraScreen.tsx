@@ -19,9 +19,11 @@ import type { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
 import { API_URL } from '../services/api';
 
+// Tipurile pentru navigație și parametrii rutei
 type CameraRouteProp = RouteProp<RootStackParamList, 'Camera'>;
 type CameraNavProp = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 
+// Componenta principală pentru capturarea și analiza imaginilor
 export default function CameraScreen({
   route,
   navigation
@@ -36,6 +38,7 @@ export default function CameraScreen({
   const cameraRef = useRef<CameraView>(null);
   const [loading, setLoading] = useState(false);
 
+  // Verificarea permisiunilor pentru cameră
   if (!permission) {
     return (
       <View style={styles.center}>
@@ -54,6 +57,7 @@ export default function CameraScreen({
     );
   }
 
+  // Funcția pentru capturarea și procesarea imaginii
   const snap = async () => {
     if (!cameraRef.current) return;
     setLoading(true);
@@ -122,6 +126,7 @@ export default function CameraScreen({
     }
   };
 
+  // Returnarea UI-ului pentru capturarea imaginii
   return (
     <View style={styles.container}>
       <CameraView
