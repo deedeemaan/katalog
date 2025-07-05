@@ -125,7 +125,7 @@ export default function AddSessionScreen() {
             ))}
           </View>
 
-          <Text style={styles.label}>Note</Text>
+          <Text style={styles.label}>Notițe</Text>
           <TextInput
             style={[styles.input, styles.multiline]}
             value={notes}

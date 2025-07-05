@@ -61,6 +61,7 @@ export default function CameraScreen({
   const snap = async () => {
     if (!cameraRef.current) return;
     setLoading(true);
+    let photo_id: number | undefined;
     try {
       // 1️⃣ Capture
       const photo = await cameraRef.current.takePictureAsync({
@@ -82,8 +83,10 @@ export default function CameraScreen({
         method: 'POST',
         body: upload_data,
       });
-      if (!upload_res.ok) throw new Error(await upload_res.text());
-      const { id: photo_id } = await upload_res.json();
+      if (!upload_res.ok) 
+        throw new Error(await upload_res.text());
+      const upload_json = await upload_res.json();
+      photo_id = upload_json.id;
 
       // 3️⃣ Analiza la /posture/:photo_id/analyze
       const analyze_data = new FormData();
@@ -98,6 +101,8 @@ export default function CameraScreen({
         body: analyze_data,
       });
       if (!analyze_res.ok) {
+        // Șterge poza de pe server dacă analiza a eșuat
+        await fetch(`${API_URL}/photos/${photo_id}`, { method: 'DELETE' });
         throw new Error(await analyze_res.text() || 'Analiza posturală a eșuat.');
       }
       const analyze_json = await analyze_res.json();
@@ -106,7 +111,12 @@ export default function CameraScreen({
       const overlayUri = analyze_json.overlay_uri;
       const angles = analyze_json.angles;
       const posture = analyze_json.posture;
-      
+
+      // Verificare suplimentară pentru photo_id
+      if (!photo_id) {
+        Alert.alert('Eroare', 'ID-ul pozei nu a fost generat corect.');
+        return;
+      }
 
       // 4️⃣ Navighează la PhotoReview, trimițând toate datele
       navigation.navigate('PhotoReview', {
@@ -116,11 +126,11 @@ export default function CameraScreen({
         posture,
         student_id,
         name,
-        photo_id,
+        photo_id, 
       });
     } catch (e: any) {
       console.error(e);
-      Alert.alert('Eroare', e.message);
+      Alert.alert('Nicio poziție detectată', 'Nu s-a putut captura sau analiza poza. Încearcă din nou.');
     } finally {
       setLoading(false);
     }

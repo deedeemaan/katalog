@@ -61,35 +61,8 @@ export default function PhotoReviewScreen({
 
   // Funcția pentru salvarea analizei imaginii
   const savePhoto = async () => {
-    if (!overlay) {
-      Alert.alert('Eroare', 'Overlay-ul nu a fost generat.');
-      return;
-    }
-    try {
-      setSaving(true); // Activează indicatorul de salvare
-      // Trimiterea datelor analizei către API
-      const response = await fetch(`${API_URL}/posture/${photo_id}/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          student_id,
-          posture,
-          angles,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Eroare la salvarea analizei.');
-      }
-
-      Alert.alert('Succes', 'Analiza a fost salvată.');
-      navigation.popToTop(); // Revenire la ecranul principal
-    } catch (err: any) {
-      console.error(err);
-      Alert.alert('Eroare', err.message || 'Nu s-a putut salva analiza.');
-    } finally {
-      setSaving(false); // Dezactivează indicatorul de salvare
-    }
+    Alert.alert('Succes', 'Poza a fost salvată cu succes.');
+    navigation.navigate('StudentDetail', { id: student_id, name });
   };
 
   // Funcția pentru afișarea unghiurilor

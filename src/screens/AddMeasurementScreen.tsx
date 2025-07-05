@@ -111,7 +111,7 @@ export default function AddMeasurementScreen() {
             />
           </View>
 
-          <Text style={styles.label}>Perimetru cranian (cm)</Text>
+          <Text style={styles.label}>Perimetru cranian (cm)*</Text>
           <View style={styles.inputRow}>
             <Text style={styles.inputIcon}>🧠</Text>
             <TextInput
@@ -124,7 +124,7 @@ export default function AddMeasurementScreen() {
             />
           </View>
 
-          <Text style={styles.label}>Perimetru toracic (cm)</Text>
+          <Text style={styles.label}>Perimetru toracic (cm)*</Text>
           <View style={styles.inputRow}>
             <Text style={styles.inputIcon}>🫁</Text> 
             <TextInput
@@ -137,7 +137,7 @@ export default function AddMeasurementScreen() {
             />
           </View>
 
-          <Text style={styles.label}>Perimetru abdominal (cm)</Text>
+          <Text style={styles.label}>Perimetru abdominal (cm)*</Text>
           <View style={styles.inputRow}>
             <Text style={styles.inputIcon}>🧍</Text>
             <TextInput
@@ -150,7 +150,7 @@ export default function AddMeasurementScreen() {
             />
           </View>
 
-          <Text style={styles.label}>Deficiență fizică</Text>
+          <Text style={styles.label}>Deficiență fizică*</Text>
           <TextInput
             style={[styles.input, styles.multiline]}
             value={physicalDisability}
